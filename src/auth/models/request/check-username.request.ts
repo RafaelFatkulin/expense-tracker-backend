@@ -1,7 +1,8 @@
-import { IsNotEmpty, MaxLength } from 'class-validator';
+import { IsNotEmpty, MaxLength, MinLength } from 'class-validator';
 
 export class CheckUsernameRequest {
   @IsNotEmpty()
-  @MaxLength(20)
+  @MaxLength(255)
+  @MinLength(8)
   username: string;
 }

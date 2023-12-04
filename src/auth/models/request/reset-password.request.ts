@@ -1,4 +1,4 @@
-import { IsNotEmpty, Length, MinLength } from 'class-validator';
+import { IsNotEmpty, Length, MaxLength, MinLength } from 'class-validator';
 
 export class ResetPasswordRequest {
   @IsNotEmpty()
@@ -7,5 +7,6 @@ export class ResetPasswordRequest {
 
   @IsNotEmpty()
   @MinLength(8)
+  @MaxLength(72)
   newPassword: string;
 }

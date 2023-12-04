@@ -16,11 +16,13 @@ export class SignupRequest {
   // alphanumeric characters and - are valid
   // you can change this as you like
   @Matches(RegExp('^[a-zA-Z0-9\\-]+$'))
-  @MaxLength(20)
+  @MaxLength(255)
+  @MinLength(8)
   username: string;
 
   @IsNotEmpty()
   @MinLength(8)
+  @MaxLength(72)
   password: string;
 
   @IsNotEmpty()
