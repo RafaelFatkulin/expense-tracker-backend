@@ -1,8 +1,17 @@
-import { ConflictException, Injectable, Logger } from '@nestjs/common';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+
 import { AuthUser } from 'src/auth/auth-user';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { UpdateUserRequest } from './models/request/update-user-request.model';
 import { UserResponse } from './models/user.response';
+import { WalletResponse } from 'src/wallet/models';
 
 @Injectable()
 export class UserService {
@@ -43,6 +52,51 @@ export class UserService {
     } catch (err) {
       Logger.error(JSON.stringify(err));
       throw new ConflictException();
+    }
+  }
+
+  async getUserWallets(userId: number): Promise<WalletResponse[]> {
+    try {
+      const userWallets = await this.prisma.wallet.findMany({
+        where: { userId },
+      });
+
+      return userWallets;
+    } catch (err) {
+      Logger.error(JSON.stringify(err));
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async getOneUserWallet(
+    userId: number,
+    walletId: number,
+  ): Promise<WalletResponse> {
+    try {
+      const foundedWallet = await this.prisma.wallet.findFirst({
+        where: { id: walletId },
+      });
+
+      if (!foundedWallet) {
+        throw new NotFoundException();
+      }
+
+      if (foundedWallet?.userId !== userId) {
+        throw new ForbiddenException();
+      }
+
+      return foundedWallet;
+    } catch (err) {
+      Logger.error(JSON.stringify(err));
+
+      if (
+        err instanceof NotFoundException ||
+        err instanceof ForbiddenException
+      ) {
+        throw err;
+      }
+
+      throw new InternalServerErrorException();
     }
   }
 }

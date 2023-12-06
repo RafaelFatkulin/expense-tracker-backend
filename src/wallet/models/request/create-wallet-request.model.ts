@@ -1,4 +1,3 @@
-import { Decimal } from '@prisma/client/runtime';
 import {
   IsNotEmpty,
   IsOptional,
@@ -6,6 +5,8 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+
+import { Prisma } from '@prisma/client';
 
 export class CreateWalletRequest {
   @IsString()
@@ -18,5 +19,5 @@ export class CreateWalletRequest {
   userId: number;
 
   @IsOptional()
-  balance?: Decimal | number | string | null;
+  balance?: Prisma.Decimal | null;
 }
