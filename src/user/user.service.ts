@@ -1,17 +1,14 @@
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
-  InternalServerErrorException,
   Logger,
-  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 
 import { AuthUser } from 'src/auth/auth-user';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { UpdateUserRequest } from './models/request/update-user-request.model';
 import { UserResponse } from './models/user.response';
-import { WalletResponse } from 'src/wallet/models';
 
 @Injectable()
 export class UserService {
@@ -33,9 +30,13 @@ export class UserService {
 
   async updateUser(
     userId: number,
+    authUserId: number,
     updateRequest: UpdateUserRequest,
   ): Promise<UserResponse> {
     try {
+      if (userId !== authUserId) {
+        throw new UnauthorizedException();
+      }
       const updatedUser = await this.prisma.user.update({
         where: { id: userId },
         data: {
@@ -51,52 +52,12 @@ export class UserService {
       return UserResponse.fromUserEntity(updatedUser);
     } catch (err) {
       Logger.error(JSON.stringify(err));
-      throw new ConflictException();
-    }
-  }
 
-  async getUserWallets(userId: number): Promise<WalletResponse[]> {
-    try {
-      const userWallets = await this.prisma.wallet.findMany({
-        where: { userId },
-      });
-
-      return userWallets;
-    } catch (err) {
-      Logger.error(JSON.stringify(err));
-      throw new InternalServerErrorException();
-    }
-  }
-
-  async getOneUserWallet(
-    userId: number,
-    walletId: number,
-  ): Promise<WalletResponse> {
-    try {
-      const foundedWallet = await this.prisma.wallet.findFirst({
-        where: { id: walletId },
-      });
-
-      if (!foundedWallet) {
-        throw new NotFoundException();
-      }
-
-      if (foundedWallet?.userId !== userId) {
-        throw new ForbiddenException();
-      }
-
-      return foundedWallet;
-    } catch (err) {
-      Logger.error(JSON.stringify(err));
-
-      if (
-        err instanceof NotFoundException ||
-        err instanceof ForbiddenException
-      ) {
+      if (err instanceof UnauthorizedException) {
         throw err;
       }
 
-      throw new InternalServerErrorException();
+      throw new ConflictException();
     }
   }
 }

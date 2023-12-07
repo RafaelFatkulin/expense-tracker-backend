@@ -1,8 +1,7 @@
 import {
   Controller,
   Body,
-  Put,
-  Get,
+  Patch,
   Param,
   HttpCode,
   HttpStatus,
@@ -24,46 +23,13 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @ApiBearerAuth()
-  @Put(':id')
+  @Patch(':id')
   @HttpCode(HttpStatus.OK)
   async updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateRequest: UpdateUserRequest,
     @User() user: AuthUser,
   ): Promise<void> {
-    if (id !== user.id) {
-      throw new UnauthorizedException();
-    }
-
-    await this.userService.updateUser(id, updateRequest);
-  }
-
-  @ApiBearerAuth()
-  @Get(':id/wallets')
-  @HttpCode(HttpStatus.OK)
-  async getWallets(
-    @Param('id', ParseIntPipe) id: number,
-    @User() user: AuthUser,
-  ) {
-    if (id !== user.id) {
-      throw new UnauthorizedException();
-    }
-
-    return await this.userService.getUserWallets(id);
-  }
-
-  @ApiBearerAuth()
-  @Get(':id/wallets/:walletId')
-  @HttpCode(HttpStatus.OK)
-  async getOneWallet(
-    @Param('id', ParseIntPipe) id: number,
-    @Param('walletId', ParseIntPipe) walletId: number,
-    @User() user: AuthUser,
-  ) {
-    if (id !== user.id) {
-      throw new UnauthorizedException();
-    }
-
-    return await this.userService.getOneUserWallet(id, walletId);
+    await this.userService.updateUser(id, user.id, updateRequest);
   }
 }
