@@ -13,6 +13,8 @@ import {
 } from './models';
 
 import { PrismaService } from 'src/common/services/prisma.service';
+import { WalletResponseWithBalance } from './models/walletWithBalance.response';
+import { WalletWithTransactionsResponse } from './models/walletWithTransactions.response';
 
 @Injectable()
 export class WalletService {
@@ -48,7 +50,7 @@ export class WalletService {
     updateWalletRequest: UpdateWalletRequest,
   ): Promise<WalletResponse> {
     try {
-      const walletToUpdate = await this.getWallet(walletId);
+      const walletToUpdate = await this.getOneUserWallet(userId, walletId);
 
       if (!walletToUpdate) {
         throw new NotFoundException();
@@ -80,7 +82,7 @@ export class WalletService {
 
   async deleteWallet(walletId: number, userId: number): Promise<void> {
     try {
-      const walletToDelete = await this.getWallet(walletId);
+      const walletToDelete = await this.getOneUserWallet(userId, walletId);
 
       if (!walletToDelete) {
         throw new NotFoundException();
@@ -107,13 +109,25 @@ export class WalletService {
     }
   }
 
-  async getUserWallets(userId: number): Promise<WalletResponse[]> {
+  async getUserWallets(userId: number): Promise<WalletResponseWithBalance[]> {
     try {
-      return await this.prisma.user
-        .findUnique({
-          where: { id: userId },
-        })
-        .wallets();
+      return await this.prisma.$queryRaw<WalletResponseWithBalance[]>`
+        SELECT
+          w.id as "id",
+          w.name as "name",
+          w."userId" as "userId",
+          COALESCE(SUM(CASE WHEN t.type = 'INCOME' THEN t.amount ELSE 0 END), 0) -
+          COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount ELSE 0 END), 0) AS balance
+        FROM 
+          "wallet" w
+        LEFT JOIN 
+          "transaction" t ON w.id = t."walletId"
+        WHERE 
+          w."userId" = ${userId}
+        GROUP BY 
+          w.id, w.name, w."userId"
+      ;
+    `;
     } catch (err) {
       Logger.error(JSON.stringify(err));
       throw new InternalServerErrorException();
@@ -123,18 +137,76 @@ export class WalletService {
   async getOneUserWallet(
     userId: number,
     walletId: number,
-  ): Promise<WalletResponse> {
+  ): Promise<WalletWithTransactionsResponse> {
     try {
-      // ADD LAST 5 TRANSACTIONS IN FUTURE
-      const foundedWallet = await this.prisma.wallet.findFirst({
-        where: { id: walletId, userId },
-      });
+      const foundedWallet = await this.prisma
+        .$queryRaw<WalletWithTransactionsResponse>`
+          SELECT
+            w.id as "id",
+            w.name as "name",
+            w."userId" as "userId",
+            COALESCE(SUM(CASE WHEN t.type = 'INCOME' THEN t.amount ELSE 0 END), 0) -
+            COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount ELSE 0 END), 0) AS balance,
+            CASE 
+              WHEN EXISTS (
+                SELECT 1 
+                FROM "transaction" t
+                WHERE t."walletId" = ${walletId} AND t.type = 'INCOME'
+              )
+              THEN (
+                SELECT json_agg(json_build_object('id', t.id, 'type', t.type, 'title', t.title, 'amount', t.amount))
+                FROM (
+                  SELECT DISTINCT ON (t.id) t.id, t.type, t.title, t.amount
+                  FROM "transaction" t
+                  WHERE t."walletId" = ${walletId} AND t.type = 'INCOME'
+                  ORDER BY t.id DESC
+                  LIMIT 5
+                ) t
+              )
+              ELSE NULL -- Можно вернуть NULL или [] (пустой массив) в зависимости от предпочтений
+            END as "incomes",
+            CASE 
+              WHEN EXISTS (
+                SELECT 1 
+                FROM "transaction" t
+                WHERE t."walletId" = ${walletId} AND t.type = 'EXPENSE'
+              )
+              THEN (
+                SELECT json_agg(json_build_object('id', t.id, 'type', t.type, 'title', t.title, 'amount', t.amount))
+                FROM (
+                  SELECT DISTINCT ON (t.id) t.id, t.type, t.title, t.amount
+                  FROM "transaction" t
+                  WHERE t."walletId" = ${walletId} AND t.type = 'EXPENSE'
+                  ORDER BY t.id DESC
+                  LIMIT 5
+                ) t
+              )
+              ELSE NULL -- Можно вернуть NULL или [] (пустой массив) в зависимости от предпочтений
+            END as "expenses"
+          FROM 
+            "wallet" w
+          LEFT JOIN 
+            "transaction" t ON w.id = t."walletId"
+          WHERE 
+            w.id = ${walletId} AND w."userId" = ${userId}
+          GROUP BY 
+            w.id, w.name, w."userId"
+          LIMIT 1;
+    `;
 
-      if (!foundedWallet) {
-        throw new NotFoundException();
+      if (!foundedWallet[0]) {
+        const walletWithoutTransactions = await this.prisma.wallet.findUnique({
+          where: { id: walletId },
+        });
+
+        if (!walletWithoutTransactions) {
+          throw new NotFoundException();
+        }
+
+        return walletWithoutTransactions;
       }
 
-      return foundedWallet;
+      return foundedWallet[0];
     } catch (err) {
       Logger.error(JSON.stringify(err));
 

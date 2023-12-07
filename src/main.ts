@@ -1,9 +1,11 @@
-import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { AppModule } from './app.module';
 import * as helmet from 'helmet';
 import * as requestIp from 'request-ip';
+
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
+import { AppModule } from './app.module';
+import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
@@ -14,9 +16,9 @@ async function bootstrap() {
   app.use(helmet());
 
   const options = new DocumentBuilder()
-    .setTitle('NestJS Hackathon Starter by @ahmetuysal')
-    .setDescription('NestJS Hackathon Starter API description')
-    .setVersion('0.1.0')
+    .setTitle('Expense tracker API')
+    .setDescription('NestJS Expense tracker API description')
+    .setVersion('0.0.1')
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, options);

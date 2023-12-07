@@ -6,7 +6,6 @@ import {
   HttpCode,
   HttpStatus,
   ParseIntPipe,
-  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';

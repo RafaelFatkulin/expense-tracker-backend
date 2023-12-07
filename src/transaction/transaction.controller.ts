@@ -1,0 +1,72 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { TransactionService } from './transaction.service';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
+import {
+  CreateTransactionRequest,
+  TransactionResponse,
+  UpdateTransactionRequest,
+} from './models';
+
+@Controller('transactions')
+@UseGuards(AuthGuard())
+export class TransactionController {
+  constructor(private readonly transactionService: TransactionService) {}
+
+  @ApiBearerAuth()
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  async create(
+    @Body() createRequest: CreateTransactionRequest,
+  ): Promise<TransactionResponse> {
+    return await this.transactionService.createTransaction(createRequest);
+  }
+
+  @ApiBearerAuth()
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateRequest: UpdateTransactionRequest,
+  ): Promise<TransactionResponse> {
+    return await this.transactionService.updateTransaction(id, updateRequest);
+  }
+
+  @ApiBearerAuth()
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    return await this.transactionService.deleteTransaction(id);
+  }
+
+  @ApiBearerAuth()
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  async getWalletTransactions(
+    @Query('wallet', ParseIntPipe) walletId: number,
+  ): Promise<TransactionResponse[]> {
+    return await this.transactionService.getWalletTransactions(walletId);
+  }
+
+  @ApiBearerAuth()
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  async getOneTransaction(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<TransactionResponse> {
+    return await this.transactionService.getTransaction(id);
+  }
+}

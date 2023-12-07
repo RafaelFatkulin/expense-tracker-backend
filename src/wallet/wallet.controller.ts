@@ -23,13 +23,13 @@ import { User } from 'src/user/user.decorator';
 import { AuthUser } from 'src/auth/auth-user';
 
 @Controller('wallets')
+@UseGuards(AuthGuard())
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
   @ApiBearerAuth()
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @UseGuards(AuthGuard())
   async create(
     @Body() createRequest: CreateWalletRequest,
   ): Promise<WalletResponse> {
@@ -39,7 +39,6 @@ export class WalletController {
   @ApiBearerAuth()
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard())
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateRequest: UpdateWalletRequest,
@@ -51,7 +50,6 @@ export class WalletController {
   @ApiBearerAuth()
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard())
   async delete(
     @Param('id', ParseIntPipe) id: number,
     @User() user: AuthUser,
@@ -62,7 +60,6 @@ export class WalletController {
   @ApiBearerAuth()
   @Get()
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard())
   async getUserWallets(@User() user: AuthUser): Promise<WalletResponse[]> {
     return await this.walletService.getUserWallets(user.id);
   }
@@ -70,7 +67,6 @@ export class WalletController {
   @ApiBearerAuth()
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AuthGuard())
   async getOneUserWallet(
     @Param('id', ParseIntPipe) id: number,
     @User() user: AuthUser,

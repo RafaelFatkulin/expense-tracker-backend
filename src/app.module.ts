@@ -1,13 +1,14 @@
-import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { MailSenderModule } from './mail-sender/mail-sender.module';
-import { ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { Module } from '@nestjs/common';
 import { ThrottlerBehindProxyGuard } from './common/guards/throttler-behind-proxy.guard';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { UserModule } from './user/user.module';
 import { WalletModule } from './wallet/wallet.module';
+import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { WalletModule } from './wallet/wallet.module';
     AuthModule,
     MailSenderModule,
     WalletModule,
+    TransactionModule,
   ],
   controllers: [AppController],
   providers: [
