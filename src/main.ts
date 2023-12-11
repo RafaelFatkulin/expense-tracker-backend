@@ -15,6 +15,14 @@ async function bootstrap() {
   app.use(requestIp.mw());
   app.use(helmet());
 
+  const allowedOrigins = ['*', 'http://localhost:5173'];
+
+  app.enableCors({
+    origin: allowedOrigins,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
+
   const options = new DocumentBuilder()
     .setTitle('Expense tracker API')
     .setDescription('NestJS Expense tracker API description')
