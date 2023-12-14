@@ -6,7 +6,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/common/services/prisma.service';
-import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
 import { MailSenderService } from 'src/mail-sender/mail-sender.service';
 import {
@@ -21,21 +20,21 @@ import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './jwt.payload';
 import { AuthUser } from './auth-user';
+import { SuccessMessageResponse } from 'src/common/models';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly userService: UserService,
     private readonly jwtService: JwtService,
     private readonly mailSenderService: MailSenderService,
   ) {}
 
-  async signup(signupRequest: SignupRequest): Promise<void> {
+  async signup(signupRequest: SignupRequest): Promise<SuccessMessageResponse> {
     const emailVerificationToken = nanoid();
 
     try {
-      await this.prisma.user.create({
+      const createdUser = await this.prisma.user.create({
         data: {
           username: signupRequest.username.toLowerCase(),
           email: signupRequest.email.toLowerCase(),
@@ -51,6 +50,10 @@ export class AuthService {
         },
         select: null,
       });
+
+      if (createdUser) {
+        return { message: 'Регистрация успешна' };
+      }
     } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2002') {
@@ -70,7 +73,7 @@ export class AuthService {
     name: string,
     email: string,
     userId: number,
-  ): Promise<void> {
+  ): Promise<SuccessMessageResponse> {
     const deletePrevEmailVerificationIfExist =
       this.prisma.emailVerification.deleteMany({ where: { userId } });
 
@@ -90,9 +93,11 @@ export class AuthService {
     ]);
 
     await this.mailSenderService.sendVerifyEmailMail(name, email, token);
+
+    return { message: 'Письмо отправлено на вашу почту' };
   }
 
-  async verifyEmail(token: string): Promise<void> {
+  async verifyEmail(token: string): Promise<SuccessMessageResponse> {
     const emailVerification = await this.prisma.emailVerification.findUnique({
       where: { token },
     });
@@ -108,6 +113,8 @@ export class AuthService {
         },
         select: null,
       });
+
+      return { message: 'Почта подтверждена' };
     } else {
       Logger.log(`Verify email called with invalid email token ${token}`);
       throw new NotFoundException();
@@ -119,7 +126,7 @@ export class AuthService {
     userId: number,
     name: string,
     oldEmail: string,
-  ): Promise<void> {
+  ): Promise<SuccessMessageResponse> {
     const emailAvailable = await this.isEmailAvailable(
       changeEmailRequest.newEmail,
     );
@@ -152,9 +159,11 @@ export class AuthService {
     ]);
 
     await this.mailSenderService.sendChangeEmailMail(name, oldEmail, token);
+
+    return { message: 'Письмо отправлено на вашу почту' };
   }
 
-  async changeEmail(token: string): Promise<void> {
+  async changeEmail(token: string): Promise<SuccessMessageResponse> {
     const emailChange = await this.prisma.emailChange.findUnique({
       where: { token },
     });
@@ -167,13 +176,15 @@ export class AuthService {
         },
         select: null,
       });
+
+      return { message: 'Почта изменилась успешно' };
     } else {
       Logger.log(`Invalid email change token ${token} is rejected.`);
       throw new NotFoundException();
     }
   }
 
-  async sendResetPasswordMail(email: string): Promise<void> {
+  async sendResetPasswordMail(email: string): Promise<SuccessMessageResponse> {
     const user = await this.prisma.user.findUnique({
       where: { email: email.toLowerCase() },
       select: {
@@ -213,11 +224,13 @@ export class AuthService {
       user.email,
       token,
     );
+
+    return { message: 'Письмо для сброса пароля отправлено на вашу почту' };
   }
 
   async resetPassword(
     resetPasswordRequest: ResetPasswordRequest,
-  ): Promise<void> {
+  ): Promise<SuccessMessageResponse> {
     const passwordReset = await this.prisma.passwordReset.findUnique({
       where: { token: resetPasswordRequest.token },
     });
@@ -230,6 +243,8 @@ export class AuthService {
         },
         select: null,
       });
+
+      return { message: 'Письмо изменен успешно' };
     } else {
       Logger.log(
         `Invalid reset password token ${resetPasswordRequest.token} is rejected`,
@@ -243,7 +258,7 @@ export class AuthService {
     userId: number,
     name: string,
     email: string,
-  ): Promise<void> {
+  ): Promise<SuccessMessageResponse> {
     await this.prisma.user.update({
       where: {
         id: userId,
@@ -255,6 +270,8 @@ export class AuthService {
     });
 
     this.mailSenderService.sendPasswordChangeInfoMail(name, email);
+
+    return { message: 'Письмо для смены пароля отправлено на вашу почту' };
   }
 
   async validateUser(payload: JwtPayload): Promise<AuthUser> {
@@ -273,40 +290,50 @@ export class AuthService {
   }
 
   async login(loginRequest: LoginRequest): Promise<string> {
-    const normalizedIdentifier = loginRequest.email.toLowerCase();
-    const user = await this.prisma.user.findFirst({
-      where: {
-        OR: [
-          {
-            username: normalizedIdentifier,
-          },
-          {
-            email: normalizedIdentifier,
-          },
-        ],
-      },
-      select: {
-        id: true,
-        passwordHash: true,
-        email: true,
-        username: true,
-      },
-    });
+    try {
+      const normalizedIdentifier = loginRequest.email.toLowerCase();
+      const user = await this.prisma.user.findFirst({
+        where: {
+          OR: [
+            {
+              username: normalizedIdentifier,
+            },
+            {
+              email: normalizedIdentifier,
+            },
+          ],
+        },
+        select: {
+          id: true,
+          passwordHash: true,
+          email: true,
+          username: true,
+        },
+      });
 
-    if (
-      user === null ||
-      !bcrypt.compareSync(loginRequest.password, user.passwordHash)
-    ) {
-      throw new UnauthorizedException();
+      if (
+        user === null ||
+        !bcrypt.compareSync(loginRequest.password, user.passwordHash)
+      ) {
+        throw new UnauthorizedException('Введены неверные данные');
+      }
+
+      const payload: JwtPayload = {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+      };
+
+      return this.jwtService.signAsync(payload);
+    } catch (err) {
+      Logger.log(err);
+
+      if (err instanceof UnauthorizedException) {
+        throw err;
+      }
+
+      throw new NotFoundException('Введены неверные данные');
     }
-
-    const payload: JwtPayload = {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-    };
-
-    return this.jwtService.signAsync(payload);
   }
 
   async isUsernameAvailable(username: string): Promise<boolean> {

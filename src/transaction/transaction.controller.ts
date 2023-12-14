@@ -13,14 +13,16 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import {
   CreateTransactionRequest,
   TransactionResponse,
   UpdateTransactionRequest,
 } from './models';
+import { SuccessMessageResponse } from 'src/common/models';
 
+@ApiTags('transactions')
 @Controller('transactions')
 @UseGuards(AuthGuard())
 export class TransactionController {
@@ -48,7 +50,9 @@ export class TransactionController {
   @ApiBearerAuth()
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  async delete(@Param('id', ParseIntPipe) id: number): Promise<void> {
+  async delete(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<SuccessMessageResponse> {
     return await this.transactionService.deleteTransaction(id);
   }
 

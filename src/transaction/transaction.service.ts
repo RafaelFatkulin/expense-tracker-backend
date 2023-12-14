@@ -10,6 +10,7 @@ import { TransactionResponse, UpdateTransactionRequest } from './models';
 
 import { CreateTransactionRequest } from './models/request/create-transaction-request.model';
 import { PrismaService } from 'src/common/services/prisma.service';
+import { SuccessMessageResponse } from 'src/common/models';
 
 @Injectable()
 export class TransactionService {
@@ -102,7 +103,9 @@ export class TransactionService {
     }
   }
 
-  async deleteTransaction(transactionId: number): Promise<void> {
+  async deleteTransaction(
+    transactionId: number,
+  ): Promise<SuccessMessageResponse> {
     try {
       const transactionToDelete = await this.getTransaction(transactionId);
 
@@ -113,6 +116,8 @@ export class TransactionService {
       await this.prisma.transaction.delete({
         where: { id: transactionId },
       });
+
+      return { message: 'Транзакция удалена' };
     } catch (err) {
       Logger.error(JSON.stringify(err));
 

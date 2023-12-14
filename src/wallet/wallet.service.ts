@@ -15,6 +15,7 @@ import {
 import { PrismaService } from 'src/common/services/prisma.service';
 import { WalletResponseWithBalance } from './models/walletWithBalance.response';
 import { WalletWithTransactionsResponse } from './models/walletWithTransactions.response';
+import { SuccessMessageResponse } from 'src/common/models';
 
 @Injectable()
 export class WalletService {
@@ -80,7 +81,10 @@ export class WalletService {
     }
   }
 
-  async deleteWallet(walletId: number, userId: number): Promise<void> {
+  async deleteWallet(
+    walletId: number,
+    userId: number,
+  ): Promise<SuccessMessageResponse> {
     try {
       const walletToDelete = await this.getOneUserWallet(userId, walletId);
 
@@ -95,6 +99,8 @@ export class WalletService {
       await this.prisma.wallet.delete({
         where: { id: walletId },
       });
+
+      return { message: 'Кошелек удален' };
     } catch (err) {
       Logger.error(JSON.stringify(err));
 

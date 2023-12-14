@@ -8,6 +8,7 @@ import {
   Query,
   UseGuards,
   Param,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -27,6 +28,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { User } from 'src/user/user.decorator';
 import { AuthUser } from './auth-user';
 import { UserResponse } from 'src/user/models';
+import { SuccessMessageResponse } from 'src/common/models';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -58,8 +60,16 @@ export class AuthController {
 
   @Post('signup')
   @HttpCode(HttpStatus.CREATED)
-  async signup(@Body() signupRequest: SignupRequest): Promise<void> {
-    await this.authService.signup(signupRequest);
+  async signup(
+    @Body() signupRequest: SignupRequest,
+  ): Promise<SuccessMessageResponse> {
+    try {
+      return await this.authService.signup(signupRequest);
+    } catch (err) {
+      throw new InternalServerErrorException(
+        'Произошла ошибка при регистрации',
+      );
+    }
   }
 
   @Post('login')
@@ -78,8 +88,10 @@ export class AuthController {
 
   @Get('verify')
   @HttpCode(HttpStatus.OK)
-  async verifyMail(@Query('token') token: string): Promise<void> {
-    await this.authService.verifyEmail(token);
+  async verifyMail(
+    @Query('token') token: string,
+  ): Promise<SuccessMessageResponse> {
+    return await this.authService.verifyEmail(token);
   }
 
   @ApiBearerAuth()
@@ -89,8 +101,8 @@ export class AuthController {
   async sendChangeEmailMail(
     @User() user: AuthUser,
     @Body() changeEmailRequest: ChangeEmailRequest,
-  ): Promise<void> {
-    await this.authService.sendChangeEmailMail(
+  ): Promise<SuccessMessageResponse> {
+    return await this.authService.sendChangeEmailMail(
       changeEmailRequest,
       user.id,
       user.firstName,
@@ -100,14 +112,18 @@ export class AuthController {
 
   @Get('change-email')
   @HttpCode(HttpStatus.OK)
-  async changeEmail(@Query('token') token: string): Promise<void> {
-    await this.authService.changeEmail(token);
+  async changeEmail(
+    @Query('token') token: string,
+  ): Promise<SuccessMessageResponse> {
+    return await this.authService.changeEmail(token);
   }
 
   @Post('forgot-password/:email')
   @HttpCode(HttpStatus.OK)
-  async sendResetPassword(@Param('email') email: string): Promise<void> {
-    await this.authService.sendResetPasswordMail(email);
+  async sendResetPassword(
+    @Param('email') email: string,
+  ): Promise<SuccessMessageResponse> {
+    return await this.authService.sendResetPasswordMail(email);
   }
 
   @Post('change-password')
@@ -116,8 +132,8 @@ export class AuthController {
   async changePassword(
     @Body() changePasswordRequest: ChangePasswordRequest,
     @User() user: AuthUser,
-  ): Promise<void> {
-    await this.authService.changePassword(
+  ): Promise<SuccessMessageResponse> {
+    return await this.authService.changePassword(
       changePasswordRequest,
       user.id,
       user.firstName,
@@ -129,15 +145,17 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async resetPassword(
     @Body() resetPasswordRequest: ResetPasswordRequest,
-  ): Promise<void> {
-    await this.authService.resetPassword(resetPasswordRequest);
+  ): Promise<SuccessMessageResponse> {
+    return await this.authService.resetPassword(resetPasswordRequest);
   }
 
   @Post('resend-verification')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AuthGuard())
-  async resendVerificationMail(@User() user: AuthUser): Promise<void> {
-    await this.authService.resendVerificationMail(
+  async resendVerificationMail(
+    @User() user: AuthUser,
+  ): Promise<SuccessMessageResponse> {
+    return await this.authService.resendVerificationMail(
       user.firstName,
       user.email,
       user.id,

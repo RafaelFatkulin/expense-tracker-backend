@@ -12,16 +12,20 @@ import {
   Get,
 } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import {
   CreateWalletRequest,
   UpdateWalletRequest,
   WalletResponse,
+  WalletResponseWithBalance,
+  WalletWithTransactionsResponse,
 } from './models';
 import { User } from 'src/user/user.decorator';
 import { AuthUser } from 'src/auth/auth-user';
+import { SuccessMessageResponse } from 'src/common/models';
 
+@ApiTags('wallets')
 @Controller('wallets')
 @UseGuards(AuthGuard())
 export class WalletController {
@@ -53,14 +57,16 @@ export class WalletController {
   async delete(
     @Param('id', ParseIntPipe) id: number,
     @User() user: AuthUser,
-  ): Promise<void> {
+  ): Promise<SuccessMessageResponse> {
     return await this.walletService.deleteWallet(id, user.id);
   }
 
   @ApiBearerAuth()
   @Get()
   @HttpCode(HttpStatus.OK)
-  async getUserWallets(@User() user: AuthUser): Promise<WalletResponse[]> {
+  async getUserWallets(
+    @User() user: AuthUser,
+  ): Promise<WalletResponseWithBalance[]> {
     return await this.walletService.getUserWallets(user.id);
   }
 
@@ -70,7 +76,7 @@ export class WalletController {
   async getOneUserWallet(
     @Param('id', ParseIntPipe) id: number,
     @User() user: AuthUser,
-  ) {
+  ): Promise<WalletWithTransactionsResponse> {
     return await this.walletService.getOneUserWallet(user.id, id);
   }
 }
