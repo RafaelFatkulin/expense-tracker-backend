@@ -1,5 +1,6 @@
 import * as helmet from 'helmet';
 import * as requestIp from 'request-ip';
+import * as cors from 'cors';
 
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
@@ -13,15 +14,22 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   app.use(requestIp.mw());
-  app.use(helmet());
 
-  const allowedOrigins = ['*', 'http://localhost:5173'];
-
+  // app.use(helmet());
   app.enableCors({
-    origin: allowedOrigins,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: '*',
+    origin: '*',
     credentials: true,
   });
+  // app.use(
+  //   cors({
+  //     origin: '*', // Разрешенный домен
+  //     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  //     preflightContinue: false,
+  //     optionsSuccessStatus: 204,
+  //     allowedHeaders: 'Content-Type,Authorization',
+  //   }),
+  // );
 
   const options = new DocumentBuilder()
     .setTitle('Expense tracker API')
