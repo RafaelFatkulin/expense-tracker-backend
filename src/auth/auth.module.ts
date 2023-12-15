@@ -15,9 +15,6 @@ import { MailSenderModule } from 'src/mail-sender/mail-sender.module';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: config.jwt.secretOrKey,
-      signOptions: {
-        expiresIn: config.jwt.expiresIn,
-      },
     }),
     MailSenderModule,
   ],

@@ -324,7 +324,9 @@ export class AuthService {
         username: user.username,
       };
 
-      return this.jwtService.signAsync(payload);
+      return this.jwtService.signAsync(payload, {
+        expiresIn: loginRequest.remember ? '60d' : '1d',
+      });
     } catch (err) {
       Logger.log(err);
 
