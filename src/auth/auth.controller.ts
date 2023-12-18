@@ -38,7 +38,7 @@ export class AuthController {
   @Post('check-username')
   @HttpCode(HttpStatus.OK)
   async checkUsernameAvailability(
-    @Body() checkUsernameRequest: CheckUsernameRequest,
+    @Body() checkUsernameRequest: { username: string },
   ): Promise<CheckUsernameResponse> {
     const isAvailable = await this.authService.isUsernameAvailable(
       checkUsernameRequest.username,
@@ -54,7 +54,7 @@ export class AuthController {
   @Post('check-email')
   @HttpCode(HttpStatus.OK)
   async checkEmailAvailability(
-    @Body() checkEmailRequest: CheckEmailRequest,
+    @Body() checkEmailRequest: { email: string },
   ): Promise<CheckEmailResponse> {
     const isAvailable = await this.authService.isEmailAvailable(
       checkEmailRequest.email,
