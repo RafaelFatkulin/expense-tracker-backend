@@ -44,7 +44,11 @@ export class AuthController {
       checkUsernameRequest.username,
     );
 
-    return new CheckUsernameResponse(isAvailable);
+    if (isAvailable) {
+      return new CheckUsernameResponse(isAvailable);
+    }
+
+    throw new InternalServerErrorException('Данный никнейм занят');
   }
 
   @Post('check-email')
@@ -55,7 +59,12 @@ export class AuthController {
     const isAvailable = await this.authService.isEmailAvailable(
       checkEmailRequest.email,
     );
-    return new CheckEmailResponse(isAvailable);
+
+    if (isAvailable) {
+      return new CheckEmailResponse(isAvailable);
+    }
+
+    throw new InternalServerErrorException('Данная почта занята');
   }
 
   @Post('signup')
