@@ -36,8 +36,7 @@ export class SignupRequest {
   lastName: string;
 
   @IsOptional()
-  @IsNotEmpty()
-  @Matches(RegExp('^[A-Za-zıöüçğşİÖÜÇĞŞñÑáéíóúÁÉÍÓÚ ]+$'))
+  @Matches(RegExp('^[A-Za-zıöüçğşİÖÜÇĞŞñÑáéíóúÁÉÍÓÚ ]*$'))
   @MaxLength(20)
   middleName?: string;
 }
