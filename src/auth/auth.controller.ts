@@ -15,9 +15,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   ChangeEmailRequest,
   ChangePasswordRequest,
-  CheckEmailRequest,
   CheckEmailResponse,
-  CheckUsernameRequest,
   CheckUsernameResponse,
   LoginRequest,
   LoginResponse,

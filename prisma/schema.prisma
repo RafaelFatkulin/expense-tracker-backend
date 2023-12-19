@@ -46,10 +46,8 @@ model User {
   passwordHash      String
   firstName         String
   lastName          String?
-  middleName        String?
-  image             String?
+  middleName        String? 
   emailVerified     Boolean            @default(false)
-  birthDate         DateTime?          @db.Date
   registrationDate  DateTime           @default(dbgenerated("timezone('UTC'::text, now())")) @db.Timestamp(6)
   emailChange       EmailChange?
   emailVerification EmailVerification?

@@ -39,14 +39,7 @@ export class UserService {
       }
       const updatedUser = await this.prisma.user.update({
         where: { id: userId },
-        data: {
-          ...updateRequest,
-          birthDate:
-            updateRequest.birthDate !== null &&
-            updateRequest.birthDate !== undefined
-              ? new Date(updateRequest.birthDate)
-              : updateRequest.birthDate,
-        },
+        data: updateRequest,
       });
 
       return UserResponse.fromUserEntity(updatedUser);
