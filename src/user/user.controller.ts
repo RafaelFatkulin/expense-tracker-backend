@@ -14,6 +14,7 @@ import { UpdateUserRequest } from './models';
 import { User } from './user.decorator';
 import { AuthUser } from 'src/auth/auth-user';
 import { AuthGuard } from '@nestjs/passport';
+import { SuccessMessageResponse } from 'src/common/models';
 
 @ApiTags('users')
 @Controller('users')
@@ -28,7 +29,7 @@ export class UserController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateRequest: UpdateUserRequest,
     @User() user: AuthUser,
-  ): Promise<void> {
-    await this.userService.updateUser(id, user.id, updateRequest);
+  ): Promise<SuccessMessageResponse> {
+    return await this.userService.updateUser(id, user.id, updateRequest);
   }
 }

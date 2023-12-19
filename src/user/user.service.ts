@@ -8,7 +8,7 @@ import {
 import { AuthUser } from 'src/auth/auth-user';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { UpdateUserRequest } from './models/request/update-user-request.model';
-import { UserResponse } from './models/user.response';
+import { SuccessMessageResponse } from 'src/common/models';
 
 @Injectable()
 export class UserService {
@@ -32,7 +32,7 @@ export class UserService {
     userId: number,
     authUserId: number,
     updateRequest: UpdateUserRequest,
-  ): Promise<UserResponse> {
+  ): Promise<SuccessMessageResponse> {
     try {
       if (userId !== authUserId) {
         throw new UnauthorizedException();
@@ -42,7 +42,9 @@ export class UserService {
         data: updateRequest,
       });
 
-      return UserResponse.fromUserEntity(updatedUser);
+      if (updatedUser) {
+        return { message: 'Данные аккаунта редактированы' };
+      }
     } catch (err) {
       Logger.error(JSON.stringify(err));
 
