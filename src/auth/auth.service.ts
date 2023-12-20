@@ -279,11 +279,7 @@ export class AuthService {
       where: { id: payload.id },
     });
 
-    if (
-      user !== null &&
-      user.email === payload.email &&
-      user.username === payload.username
-    ) {
+    if (user !== null && user.email === payload.email) {
       return user;
     }
     throw new UnauthorizedException();
