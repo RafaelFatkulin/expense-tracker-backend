@@ -41,7 +41,7 @@ export class AuthService {
           passwordHash: await bcrypt.hash(signupRequest.password, 10),
           firstName: signupRequest.firstName,
           lastName: signupRequest.lastName,
-          middleName: signupRequest.middleName,
+          middleName: signupRequest.middleName || '',
           emailVerification: {
             create: {
               token: emailVerificationToken,
@@ -52,6 +52,12 @@ export class AuthService {
       });
 
       if (createdUser) {
+        await this.mailSenderService.sendVerifyEmailMail(
+          signupRequest.firstName,
+          signupRequest.email,
+          emailVerificationToken,
+        );
+
         return { message: 'Регистрация успешна' };
       }
     } catch (e) {
@@ -61,12 +67,6 @@ export class AuthService {
         } else throw e;
       } else throw e;
     }
-
-    await this.mailSenderService.sendVerifyEmailMail(
-      signupRequest.firstName,
-      signupRequest.email,
-      emailVerificationToken,
-    );
   }
 
   async resendVerificationMail(

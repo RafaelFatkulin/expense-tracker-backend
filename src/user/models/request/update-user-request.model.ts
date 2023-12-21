@@ -9,19 +9,18 @@ export class UpdateUserRequest {
 
   @IsOptional()
   @IsNotEmpty()
-  @Matches(RegExp('^[A-Za-zıöüçğşİÖÜÇĞŞñÑáéíóúÁÉÍÓÚ]+$'))
+  @Matches(RegExp('^[a-zA-Zа-яёА-ЯЁ]+$'))
   @MaxLength(20)
   firstName?: string;
 
   @IsOptional()
   @IsNotEmpty()
-  @Matches(RegExp('^[A-Za-zıöüçğşİÖÜÇĞŞñÑáéíóúÁÉÍÓÚ ]+$'))
+  @Matches(RegExp('^[a-zA-Zа-яёА-ЯЁ]+$'))
   @MaxLength(40)
   lastName?: string;
 
   @IsOptional()
-  @IsNotEmpty()
   @MaxLength(40)
-  @Matches(RegExp('^[A-Za-zıöüçğşİÖÜÇĞŞñÑáéíóúÁÉÍÓÚ ]+$'))
+  @Matches(RegExp('^([a-zA-Zа-яёА-ЯЁ]+)?$'))
   middleName?: string;
 }

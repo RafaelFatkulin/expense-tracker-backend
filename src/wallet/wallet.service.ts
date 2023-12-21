@@ -117,23 +117,24 @@ export class WalletService {
 
   async getUserWallets(userId: number): Promise<WalletResponseWithBalance[]> {
     try {
-      return await this.prisma.$queryRaw<WalletResponseWithBalance[]>`
-        SELECT
-          w.id as "id",
-          w.name as "name",
-          w."userId" as "userId",
-          COALESCE(SUM(CASE WHEN t.type = 'INCOME' THEN t.amount ELSE 0 END), 0) -
-          COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount ELSE 0 END), 0) AS balance
-        FROM 
-          "wallet" w
-        LEFT JOIN 
-          "transaction" t ON w.id = t."walletId"
-        WHERE 
-          w."userId" = ${userId}
-        GROUP BY 
-          w.id, w.name, w."userId"
-      ;
-    `;
+      const wallets = await this.prisma.$queryRaw<WalletResponseWithBalance[]>`
+      SELECT
+        w.id as "id",
+        w.name as "name",
+        w."userId" as "userId",
+        COALESCE(SUM(CASE WHEN t.type = 'INCOME' THEN t.amount ELSE 0 END), 0) -
+        COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount ELSE 0 END), 0) AS balance
+      FROM 
+        "wallet" w
+      LEFT JOIN 
+        "transaction" t ON w.id = t."walletId"
+      WHERE 
+        w."userId" = ${userId}
+      GROUP BY 
+        w.id, w.name, w."userId"
+    ;
+  `;
+      return wallets;
     } catch (err) {
       Logger.error(JSON.stringify(err));
       throw new InternalServerErrorException();
