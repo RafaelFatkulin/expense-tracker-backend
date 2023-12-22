@@ -23,7 +23,9 @@ export class WalletService {
 
   async getWallet(walletId: number): Promise<WalletResponse> {
     try {
-      return await this.prisma.wallet.findUnique({ where: { id: walletId } });
+      return WalletResponse.fromWalletEntity(
+        await this.prisma.wallet.findUnique({ where: { id: walletId } }),
+      );
     } catch (err) {
       Logger.error(JSON.stringify(err));
       throw new NotFoundException();
@@ -132,7 +134,8 @@ export class WalletService {
         w."userId" = ${userId}
       GROUP BY 
         w.id, w.name, w."userId"
-    ;
+      ORDER BY
+        w.id;
   `;
       return wallets;
     } catch (err) {

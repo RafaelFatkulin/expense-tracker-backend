@@ -4,6 +4,7 @@ export class WalletResponse {
   id: number;
   name: string;
   userId: number;
+  balance: number;
 
   static fromWalletEntity(entity: Wallet): WalletResponse {
     const response = new WalletResponse();
@@ -11,6 +12,7 @@ export class WalletResponse {
     response.id = entity.id;
     response.name = entity.name;
     response.userId = entity.userId;
+    response.balance = 0;
 
     return response;
   }
