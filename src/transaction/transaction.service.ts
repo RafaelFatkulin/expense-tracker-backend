@@ -11,6 +11,7 @@ import { TransactionResponse, UpdateTransactionRequest } from './models';
 import { CreateTransactionRequest } from './models/request/create-transaction-request.model';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { SuccessMessageResponse } from 'src/common/models';
+import { TransactionType } from '@prisma/client';
 
 @Injectable()
 export class TransactionService {
@@ -29,17 +30,15 @@ export class TransactionService {
 
   async getWalletTransactions(
     walletId: number,
+    transactionType: TransactionType,
   ): Promise<TransactionResponse[]> {
     try {
-      const transactionsOfWallet = await this.prisma.wallet
-        .findUnique({
-          where: { id: walletId },
-        })
-        .transactions({
-          orderBy: {
-            id: 'asc',
-          },
-        });
+      const transactionsOfWallet = await this.prisma.transaction.findMany({
+        where: { type: transactionType, walletId },
+        orderBy: {
+          id: 'asc',
+        },
+      });
 
       if (!transactionsOfWallet) {
         throw new NotFoundException();

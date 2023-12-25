@@ -6,6 +6,7 @@ export class TransactionResponse {
   type: TransactionType;
   amount: Prisma.Decimal;
   walletId: number;
+  createdAt: Date;
 
   static fromTransactionEntity(entity: Transaction): TransactionResponse {
     const response = new TransactionResponse();
@@ -15,6 +16,7 @@ export class TransactionResponse {
     response.type = entity.type;
     response.amount = entity.amount;
     response.walletId = entity.walletId;
+    response.createdAt = entity.createdAt;
 
     return response;
   }

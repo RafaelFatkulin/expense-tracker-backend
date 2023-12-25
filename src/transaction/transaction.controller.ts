@@ -21,6 +21,7 @@ import {
   UpdateTransactionRequest,
 } from './models';
 import { SuccessMessageResponse } from 'src/common/models';
+import { TransactionType } from '@prisma/client';
 
 @ApiTags('transactions')
 @Controller('transactions')
@@ -61,8 +62,12 @@ export class TransactionController {
   @HttpCode(HttpStatus.OK)
   async getWalletTransactions(
     @Query('wallet', ParseIntPipe) walletId: number,
+    @Query('type') transactionType: TransactionType,
   ): Promise<TransactionResponse[]> {
-    return await this.transactionService.getWalletTransactions(walletId);
+    return await this.transactionService.getWalletTransactions(
+      walletId,
+      transactionType,
+    );
   }
 
   @ApiBearerAuth()

@@ -83,5 +83,7 @@ model Transaction {
   Wallet   Wallet?         @relation(fields: [walletId], references: [id])
   walletId Int?
 
+  createdAt DateTime @default(dbgenerated("timezone('UTC'::text, now())")) @db.Timestamp(6)
+
   @@map("transaction")
 }
