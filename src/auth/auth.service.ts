@@ -12,6 +12,7 @@ import {
   ChangeEmailRequest,
   ChangePasswordRequest,
   LoginRequest,
+  LoginResponse,
   ResetPasswordRequest,
   SignupRequest,
 } from './models';
@@ -285,7 +286,7 @@ export class AuthService {
     throw new UnauthorizedException();
   }
 
-  async login(loginRequest: LoginRequest): Promise<string> {
+  async login(loginRequest: LoginRequest): Promise<LoginResponse> {
     try {
       const normalizedIdentifier = loginRequest.email.toLowerCase();
       const user = await this.prisma.user.findFirst({
@@ -298,12 +299,6 @@ export class AuthService {
               email: normalizedIdentifier,
             },
           ],
-        },
-        select: {
-          id: true,
-          passwordHash: true,
-          email: true,
-          username: true,
         },
       });
 
@@ -318,11 +313,27 @@ export class AuthService {
         id: user.id,
         email: user.email,
         username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        middleName: user.middleName,
+        emailVerified: user.emailVerified,
       };
 
-      return this.jwtService.signAsync(payload, {
-        expiresIn: loginRequest.remember ? '60d' : '1d',
+      const accessToken = await this.jwtService.signAsync(payload, {
+        expiresIn: loginRequest.remember ? '7d' : '1d',
       });
+
+      const refreshToken = await this.jwtService.signAsync(payload, {
+        expiresIn: '14d',
+      });
+
+      const { passwordHash, ...userDataToSend } = user;
+
+      return {
+        user: userDataToSend,
+        accessToken,
+        refreshToken,
+      };
     } catch (err) {
       Logger.log(err);
 
