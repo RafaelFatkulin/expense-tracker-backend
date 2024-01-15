@@ -83,7 +83,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginRequest: LoginRequest): Promise<LoginResponse> {
     const res = await this.authService.login(loginRequest);
-    return new LoginResponse(res.user, res.accessToken, res.refreshToken);
+    console.log(res);
+    return new LoginResponse(res.user, res.token, res.refreshToken);
   }
 
   @ApiBearerAuth()

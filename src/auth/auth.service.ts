@@ -319,7 +319,7 @@ export class AuthService {
         emailVerified: user.emailVerified,
       };
 
-      const accessToken = await this.jwtService.signAsync(payload, {
+      const token = await this.jwtService.signAsync(payload, {
         expiresIn: loginRequest.remember ? '7d' : '1d',
       });
 
@@ -331,7 +331,7 @@ export class AuthService {
 
       return {
         user: userDataToSend,
-        accessToken,
+        token,
         refreshToken,
       };
     } catch (err) {
