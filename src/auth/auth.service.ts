@@ -288,17 +288,10 @@ export class AuthService {
 
   async login(loginRequest: LoginRequest): Promise<LoginResponse> {
     try {
-      const normalizedIdentifier = loginRequest.email.toLowerCase();
+      const email = loginRequest.email.toLowerCase();
       const user = await this.prisma.user.findFirst({
         where: {
-          OR: [
-            {
-              username: normalizedIdentifier,
-            },
-            {
-              email: normalizedIdentifier,
-            },
-          ],
+          email: email,
         },
       });
 
@@ -323,17 +316,11 @@ export class AuthService {
         expiresIn: loginRequest.remember ? '7d' : '1d',
       });
 
-      const refreshToken = await this.jwtService.signAsync(payload, {
-        expiresIn: '14d',
-      });
+      // const refreshToken = await this.jwtService.signAsync(payload, {
+      //   expiresIn: '14d',
+      // });
 
-      const { passwordHash, ...userDataToSend } = user;
-
-      return {
-        user: userDataToSend,
-        token,
-        refreshToken,
-      };
+      return { token };
     } catch (err) {
       Logger.log(err);
 

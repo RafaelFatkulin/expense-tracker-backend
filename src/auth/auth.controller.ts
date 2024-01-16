@@ -84,7 +84,7 @@ export class AuthController {
   async login(@Body() loginRequest: LoginRequest): Promise<LoginResponse> {
     const res = await this.authService.login(loginRequest);
     console.log(res);
-    return new LoginResponse(res.user, res.token, res.refreshToken);
+    return new LoginResponse(res.token);
   }
 
   @ApiBearerAuth()
