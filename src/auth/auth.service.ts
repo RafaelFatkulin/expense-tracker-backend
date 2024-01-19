@@ -313,12 +313,14 @@ export class AuthService {
       };
 
       const token = await this.jwtService.signAsync(payload, {
-        expiresIn: loginRequest.remember ? '7d' : '1d',
+        expiresIn: '15m',
       });
 
       // const refreshToken = await this.jwtService.signAsync(payload, {
       //   expiresIn: '14d',
       // });
+
+      console.log(`token`, this.jwtService.decode(token));
 
       return { token };
     } catch (err) {
