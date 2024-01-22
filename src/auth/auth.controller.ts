@@ -83,8 +83,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginRequest: LoginRequest): Promise<LoginResponse> {
     const res = await this.authService.login(loginRequest);
-    console.log(res);
-    return new LoginResponse(res.token);
+
+    return new LoginResponse(res.token, res.user);
   }
 
   @ApiBearerAuth()
@@ -114,7 +114,7 @@ export class AuthController {
     return await this.authService.sendChangeEmailMail(
       changeEmailRequest,
       user.id,
-      user.firstName,
+      user.username,
       user.email,
     );
   }
@@ -145,7 +145,7 @@ export class AuthController {
     return await this.authService.changePassword(
       changePasswordRequest,
       user.id,
-      user.firstName,
+      user.username,
       user.email,
     );
   }
@@ -165,7 +165,7 @@ export class AuthController {
     @User() user: AuthUser,
   ): Promise<SuccessMessageResponse> {
     return await this.authService.resendVerificationMail(
-      user.firstName,
+      user.username,
       user.email,
       user.id,
     );

@@ -1,7 +1,6 @@
 import {
   IsEmail,
   IsNotEmpty,
-  IsOptional,
   Matches,
   MaxLength,
   MinLength,
@@ -24,19 +23,4 @@ export class SignupRequest {
   @MinLength(8)
   @MaxLength(72)
   password: string;
-
-  @IsNotEmpty()
-  @Matches(RegExp('^[A-Za-zıöüçğşİÖÜÇĞŞñÑáéíóúÁÉÍÓÚ ]+$'))
-  @MaxLength(20)
-  firstName: string;
-
-  @IsNotEmpty()
-  @Matches(RegExp('^[A-Za-zıöüçğşİÖÜÇĞŞñÑáéíóúÁÉÍÓÚ ]+$'))
-  @MaxLength(20)
-  lastName: string;
-
-  @IsOptional()
-  @Matches(RegExp('^[A-Za-zıöüçğşİÖÜÇĞŞñÑáéíóúÁÉÍÓÚ ]*$'))
-  @MaxLength(20)
-  middleName?: string;
 }

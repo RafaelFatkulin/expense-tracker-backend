@@ -40,9 +40,6 @@ export class AuthService {
           username: signupRequest.username.toLowerCase(),
           email: signupRequest.email.toLowerCase(),
           passwordHash: await bcrypt.hash(signupRequest.password, 10),
-          firstName: signupRequest.firstName,
-          lastName: signupRequest.lastName,
-          middleName: signupRequest.middleName || '',
           emailVerification: {
             create: {
               token: emailVerificationToken,
@@ -54,7 +51,7 @@ export class AuthService {
 
       if (createdUser) {
         await this.mailSenderService.sendVerifyEmailMail(
-          signupRequest.firstName,
+          signupRequest.username,
           signupRequest.email,
           emailVerificationToken,
         );
@@ -190,7 +187,7 @@ export class AuthService {
       where: { email: email.toLowerCase() },
       select: {
         id: true,
-        firstName: true,
+        username: true,
         email: true,
       },
     });
@@ -221,7 +218,7 @@ export class AuthService {
     ]);
 
     await this.mailSenderService.sendResetPasswordMail(
-      user.firstName,
+      user.username,
       user.email,
       token,
     );
@@ -280,7 +277,7 @@ export class AuthService {
       where: { id: payload.id },
     });
 
-    if (user !== null && user.email === payload.email) {
+    if (user !== null && user.username === payload.username) {
       return user;
     }
     throw new UnauthorizedException();
@@ -306,23 +303,18 @@ export class AuthService {
         id: user.id,
         email: user.email,
         username: user.username,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        middleName: user.middleName,
         emailVerified: user.emailVerified,
       };
 
       const token = await this.jwtService.signAsync(payload, {
-        expiresIn: '15m',
+        expiresIn: '1m',
       });
 
       // const refreshToken = await this.jwtService.signAsync(payload, {
       //   expiresIn: '14d',
       // });
 
-      console.log(`token`, this.jwtService.decode(token));
-
-      return { token };
+      return { token, user };
     } catch (err) {
       Logger.log(err);
 
