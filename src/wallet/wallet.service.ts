@@ -4,18 +4,14 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import {
-  CreateWalletRequest,
-  UpdateWalletRequest,
-  WalletResponse,
-} from './models';
+  NotFoundException
+} from "@nestjs/common";
+import { CreateWalletRequest, UpdateWalletRequest, WalletResponse } from "./models";
 
-import { PrismaService } from 'src/common/services/prisma.service';
-import { WalletResponseWithBalance } from './models/walletWithBalance.response';
-import { WalletWithTransactionsResponse } from './models/walletWithTransactions.response';
-import { SuccessMessageResponse } from 'src/common/models';
+import { PrismaService } from "src/common/services/prisma.service";
+import { WalletResponseWithBalance } from "./models";
+import { WalletWithTransactionsResponse } from "./models";
+import { SuccessMessageResponse } from "src/common/models";
 
 @Injectable()
 export class WalletService {
@@ -119,7 +115,7 @@ export class WalletService {
 
   async getUserWallets(userId: number): Promise<WalletResponseWithBalance[]> {
     try {
-      const wallets = await this.prisma.$queryRaw<WalletResponseWithBalance[]>`
+      return await this.prisma.$queryRaw<WalletResponseWithBalance[]>`
       SELECT
         w.id as "id",
         w.name as "name",
@@ -137,7 +133,6 @@ export class WalletService {
       ORDER BY
         w.id;
   `;
-      return wallets;
     } catch (err) {
       Logger.error(JSON.stringify(err));
       throw new InternalServerErrorException();

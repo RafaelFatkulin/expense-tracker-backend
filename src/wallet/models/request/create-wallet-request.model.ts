@@ -11,7 +11,7 @@ export class CreateWalletRequest {
   @IsString()
   @MaxLength(48)
   @MinLength(4)
-  name: string;
+  title: string;
 
   @IsNotEmpty()
   @IsNumber()

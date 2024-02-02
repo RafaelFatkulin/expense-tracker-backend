@@ -33,7 +33,7 @@ export class WalletController {
 
   @ApiBearerAuth()
   @Post()
-  @HttpCode(HttpStatus.CREATED)
+  @HttpCode(HttpStatus.OK)
   async create(
     @Body() createRequest: CreateWalletRequest,
   ): Promise<WalletResponse> {

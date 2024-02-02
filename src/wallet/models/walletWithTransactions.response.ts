@@ -2,7 +2,7 @@ import type { Prisma, Transaction } from '@prisma/client';
 
 export class WalletWithTransactionsResponse {
   id: number;
-  name: string;
+  title: string;
   balance?: Prisma.Decimal;
   userId: number;
   incomes?: Transaction[];
@@ -14,7 +14,7 @@ export class WalletWithTransactionsResponse {
     const response = new WalletWithTransactionsResponse();
 
     response.id = entity.id;
-    response.name = entity.name;
+    response.title = entity.title;
     response.balance = entity.balance;
     response.userId = entity.userId;
     response.incomes = entity.incomes;

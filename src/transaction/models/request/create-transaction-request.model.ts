@@ -27,4 +27,8 @@ export class CreateTransactionRequest {
   @IsNotEmpty()
   @IsNumber()
   walletId: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  transactionTagId: number;
 }

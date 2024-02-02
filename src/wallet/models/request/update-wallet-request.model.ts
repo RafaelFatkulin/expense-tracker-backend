@@ -5,5 +5,5 @@ export class UpdateWalletRequest {
   @IsNotEmpty()
   @MaxLength(48)
   @MinLength(4)
-  name?: string;
+  title?: string;
 }

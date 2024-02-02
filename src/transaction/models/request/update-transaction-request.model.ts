@@ -32,4 +32,9 @@ export class UpdateTransactionRequest {
   @IsNotEmpty()
   @IsNumber()
   walletId?: number;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsNumber()
+  transactionTagId?: number;
 }

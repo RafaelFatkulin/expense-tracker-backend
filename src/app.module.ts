@@ -9,6 +9,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { UserModule } from './user/user.module';
 import { WalletModule } from './wallet/wallet.module';
 import { TransactionModule } from './transaction/transaction.module';
+import { TransactionTagModule } from "./transaction-tag/transaction-tag.module";
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { TransactionModule } from './transaction/transaction.module';
     AuthModule,
     MailSenderModule,
     WalletModule,
+    TransactionTagModule,
     TransactionModule,
   ],
   controllers: [AppController],

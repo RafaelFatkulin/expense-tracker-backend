@@ -10,7 +10,7 @@ export class WalletResponse {
     const response = new WalletResponse();
 
     response.id = entity.id;
-    response.name = entity.name;
+    response.name = entity.title;
     response.userId = entity.userId;
     response.balance = 0;
 
