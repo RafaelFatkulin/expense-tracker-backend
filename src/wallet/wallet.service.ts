@@ -15,12 +15,13 @@ import { SuccessMessageResponse } from "src/common/models";
 
 @Injectable()
 export class WalletService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {
+  }
 
   async getWallet(walletId: number): Promise<WalletResponse> {
     try {
       return WalletResponse.fromWalletEntity(
-        await this.prisma.wallet.findUnique({ where: { id: walletId } }),
+        await this.prisma.wallet.findUnique({ where: { id: walletId } })
       );
     } catch (err) {
       Logger.error(JSON.stringify(err));
@@ -29,14 +30,14 @@ export class WalletService {
   }
 
   async createWallet(
-    createWalletRequest: CreateWalletRequest,
-  ): Promise<WalletResponse> {
+    createWalletRequest: CreateWalletRequest
+  ): Promise<SuccessMessageResponse> {
     try {
       const createdWallet = await this.prisma.wallet.create({
-        data: createWalletRequest,
+        data: createWalletRequest
       });
 
-      return WalletResponse.fromWalletEntity(createdWallet);
+      return { message: `Кошелек "${createdWallet.title}" создан` };
     } catch (err) {
       Logger.error(JSON.stringify(err));
       throw new ConflictException();
@@ -46,8 +47,8 @@ export class WalletService {
   async updateWallet(
     walletId: number,
     userId: number,
-    updateWalletRequest: UpdateWalletRequest,
-  ): Promise<WalletResponse> {
+    updateWalletRequest: UpdateWalletRequest
+  ): Promise<SuccessMessageResponse> {
     try {
       const walletToUpdate = await this.getOneUserWallet(userId, walletId);
 
@@ -61,10 +62,10 @@ export class WalletService {
 
       const updatedWallet = await this.prisma.wallet.update({
         where: { id: walletId },
-        data: updateWalletRequest,
+        data: updateWalletRequest
       });
 
-      return WalletResponse.fromWalletEntity(updatedWallet);
+      return { message: `Кошелек "${walletToUpdate.title}" редактирован, теперь он называется "${updatedWallet.title}"` };
     } catch (err) {
       Logger.error(JSON.stringify(err));
 
@@ -81,7 +82,7 @@ export class WalletService {
 
   async deleteWallet(
     walletId: number,
-    userId: number,
+    userId: number
   ): Promise<SuccessMessageResponse> {
     try {
       const walletToDelete = await this.getOneUserWallet(userId, walletId);
@@ -95,10 +96,10 @@ export class WalletService {
       }
 
       await this.prisma.wallet.delete({
-        where: { id: walletId },
+        where: { id: walletId }
       });
 
-      return { message: 'Кошелек удален' };
+      return { message: `Кошелек "${walletToDelete.title}" удален` };
     } catch (err) {
       Logger.error(JSON.stringify(err));
 
@@ -118,7 +119,7 @@ export class WalletService {
       return await this.prisma.$queryRaw<WalletResponseWithBalance[]>`
       SELECT
         w.id as "id",
-        w.name as "name",
+        w.title as "title",
         w."userId" as "userId",
         COALESCE(SUM(CASE WHEN t.type = 'INCOME' THEN t.amount ELSE 0 END), 0) -
         COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount ELSE 0 END), 0) AS balance
@@ -129,7 +130,7 @@ export class WalletService {
       WHERE 
         w."userId" = ${userId}
       GROUP BY 
-        w.id, w.name, w."userId"
+        w.id, w.title, w."userId"
       ORDER BY
         w.id;
   `;
@@ -141,14 +142,14 @@ export class WalletService {
 
   async getOneUserWallet(
     userId: number,
-    walletId: number,
+    walletId: number
   ): Promise<WalletWithTransactionsResponse> {
     try {
       const foundedWallet = await this.prisma
         .$queryRaw<WalletWithTransactionsResponse>`
           SELECT
             w.id as "id",
-            w.name as "name",
+            w.title as "title",
             w."userId" as "userId",
             COALESCE(SUM(CASE WHEN t.type = 'INCOME' THEN t.amount ELSE 0 END), 0) -
             COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount ELSE 0 END), 0) AS balance,
@@ -195,13 +196,13 @@ export class WalletService {
           WHERE 
             w.id = ${walletId} AND w."userId" = ${userId}
           GROUP BY 
-            w.id, w.name, w."userId"
+            w.id, w.title, w."userId"
           LIMIT 1;
     `;
 
       if (!foundedWallet[0]) {
         const walletWithoutTransactions = await this.prisma.wallet.findUnique({
-          where: { id: walletId },
+          where: { id: walletId }
         });
 
         if (!walletWithoutTransactions) {

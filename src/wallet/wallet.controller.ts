@@ -36,7 +36,7 @@ export class WalletController {
   @HttpCode(HttpStatus.OK)
   async create(
     @Body() createRequest: CreateWalletRequest,
-  ): Promise<WalletResponse> {
+  ): Promise<SuccessMessageResponse> {
     return await this.walletService.createWallet(createRequest);
   }
 
@@ -47,7 +47,7 @@ export class WalletController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateRequest: UpdateWalletRequest,
     @User() user: AuthUser,
-  ): Promise<WalletResponse> {
+  ): Promise<SuccessMessageResponse> {
     return await this.walletService.updateWallet(id, user.id, updateRequest);
   }
 
