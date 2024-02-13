@@ -1,4 +1,4 @@
-import { TransactionTag } from "@prisma/client";
+import { TransactionTag } from '@prisma/client';
 
 export class TransactionTagResponse {
   id: number;

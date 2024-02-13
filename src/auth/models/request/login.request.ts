@@ -1,4 +1,4 @@
-import { IsNotEmpty, MaxLength, MinLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, MaxLength, MinLength, IsBoolean } from "class-validator";
 
 export class LoginRequest {
   @IsNotEmpty()
@@ -8,4 +8,8 @@ export class LoginRequest {
   @MinLength(8)
   @MaxLength(72)
   password: string;
+
+  @IsBoolean()
+  @IsOptional()
+  remember: boolean;
 }

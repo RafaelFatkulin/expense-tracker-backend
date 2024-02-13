@@ -2,7 +2,7 @@ import type { Wallet } from '@prisma/client';
 
 export class WalletResponse {
   id: number;
-  name: string;
+  title: string;
   userId: number;
   balance: number;
 
@@ -10,7 +10,7 @@ export class WalletResponse {
     const response = new WalletResponse();
 
     response.id = entity.id;
-    response.name = entity.title;
+    response.title = entity.title;
     response.userId = entity.userId;
     response.balance = 0;
 

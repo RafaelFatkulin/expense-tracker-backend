@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   Logger,
   NotFoundException,
   UnauthorizedException,
@@ -17,7 +18,6 @@ import {
   SignupRequest,
 } from './models';
 import { nanoid } from 'nanoid';
-import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './jwt.payload';
 import { AuthUser } from './auth-user';
@@ -35,6 +35,21 @@ export class AuthService {
     const emailVerificationToken = nanoid();
 
     try {
+      const isEmailAvailable = await this.isEmailAvailable(signupRequest.email);
+      const isUsernameAvailable = await this.isUsernameAvailable(
+        signupRequest.username,
+      );
+
+      if (!isEmailAvailable) {
+        throw new InternalServerErrorException(
+          'Данный адрес электронной почты занят',
+        );
+      }
+
+      if (!isUsernameAvailable) {
+        throw new InternalServerErrorException('Данный никнейм занят');
+      }
+
       const createdUser = await this.prisma.user.create({
         data: {
           username: signupRequest.username.toLowerCase(),
@@ -58,12 +73,10 @@ export class AuthService {
 
         return { message: 'Регистрация успешна' };
       }
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        if (e.code === 'P2002') {
-          throw new ConflictException();
-        } else throw e;
-      } else throw e;
+    } catch (err) {
+      Logger.error(JSON.stringify(err));
+
+      throw new InternalServerErrorException(err.message);
     }
   }
 
@@ -267,7 +280,7 @@ export class AuthService {
       select: null,
     });
 
-    this.mailSenderService.sendPasswordChangeInfoMail(name, email);
+    await this.mailSenderService.sendPasswordChangeInfoMail(name, email);
 
     return { message: 'Письмо для смены пароля отправлено на вашу почту' };
   }
@@ -307,14 +320,10 @@ export class AuthService {
       };
 
       const token = await this.jwtService.signAsync(payload, {
-        expiresIn: '1h',
+        expiresIn: loginRequest.remember ? '7d' : '1h',
       });
 
-      // const refreshToken = await this.jwtService.signAsync(payload, {
-      //   expiresIn: '14d',
-      // });
-
-      return { token, user };
+      return { token };
     } catch (err) {
       Logger.log(err);
 

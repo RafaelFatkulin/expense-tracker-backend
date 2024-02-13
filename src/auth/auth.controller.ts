@@ -70,13 +70,7 @@ export class AuthController {
   async signup(
     @Body() signupRequest: SignupRequest,
   ): Promise<SuccessMessageResponse> {
-    try {
-      return await this.authService.signup(signupRequest);
-    } catch (err) {
-      throw new InternalServerErrorException(
-        'Произошла ошибка при регистрации',
-      );
-    }
+    return await this.authService.signup(signupRequest);
   }
 
   @Post('login')
@@ -84,7 +78,7 @@ export class AuthController {
   async login(@Body() loginRequest: LoginRequest): Promise<LoginResponse> {
     const res = await this.authService.login(loginRequest);
 
-    return new LoginResponse(res.token, res.user);
+    return new LoginResponse(res.token);
   }
 
   @ApiBearerAuth()
