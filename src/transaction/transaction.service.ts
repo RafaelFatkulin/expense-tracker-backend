@@ -22,8 +22,8 @@ export class TransactionService {
       return await this.prisma.transaction.findUnique({
         where: { id: transactionId },
         include: {
-          transactionTag: true
-        }
+          transactionTag: true,
+        },
       });
     } catch (err) {
       Logger.error(JSON.stringify(err));
@@ -34,16 +34,17 @@ export class TransactionService {
   async getWalletTransactions(
     walletId: number,
     transactionType?: TransactionType,
+    transactionTagId?: number,
   ): Promise<TransactionResponse[]> {
     try {
       const transactionsOfWallet = await this.prisma.transaction.findMany({
-        where: { type: transactionType, walletId },
+        where: { type: transactionType, walletId, transactionTagId },
         orderBy: {
           id: 'asc',
         },
         include: {
-          transactionTag: true
-        }
+          transactionTag: true,
+        },
       });
 
       if (!transactionsOfWallet) {

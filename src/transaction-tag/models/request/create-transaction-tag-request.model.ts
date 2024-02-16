@@ -1,12 +1,12 @@
 import {
-  IsDecimal,
   IsHexColor,
   IsNotEmpty,
-  IsNumber, IsOptional,
+  IsNumber,
+  IsOptional,
   IsString,
   MaxLength,
-  MinLength
-} from "class-validator";
+  MinLength,
+} from 'class-validator';
 
 export class CreateTransactionTagRequest {
   @IsNotEmpty()

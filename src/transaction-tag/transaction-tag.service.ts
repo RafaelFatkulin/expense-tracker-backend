@@ -4,24 +4,27 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
-  NotFoundException
-} from "@nestjs/common";
-import { PrismaService } from "src/common/services/prisma.service";
-import { CreateTransactionTagRequest, TransactionTagResponse, UpdateTransactionTagRequest } from "./models";
-import { SuccessMessageResponse } from "../common/models";
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from 'src/common/services/prisma.service';
+import {
+  CreateTransactionTagRequest,
+  TransactionTagResponse,
+  UpdateTransactionTagRequest,
+} from './models';
+import { SuccessMessageResponse } from '../common/models';
 
 @Injectable()
 export class TransactionTagService {
-  constructor(private readonly prismaService: PrismaService) {
-  }
+  constructor(private readonly prismaService: PrismaService) {}
 
   async getTransactionTags(userId: number): Promise<TransactionTagResponse[]> {
     try {
       const transactionTags = await this.prismaService.transactionTag.findMany({
         where: { userId },
         orderBy: {
-          id: "asc"
-        }
+          id: 'asc',
+        },
       });
 
       if (!transactionTags) {
@@ -40,11 +43,16 @@ export class TransactionTagService {
     }
   }
 
-  async getTransactionTag(transactionTagId: number, userId: number): Promise<TransactionTagResponse> {
+  async getTransactionTag(
+    transactionTagId: number,
+    userId: number,
+  ): Promise<TransactionTagResponse> {
     try {
-      const transactionTag = await this.prismaService.transactionTag.findUnique({
-        where: { id: transactionTagId, userId }
-      });
+      const transactionTag = await this.prismaService.transactionTag.findUnique(
+        {
+          where: { id: transactionTagId, userId },
+        },
+      );
 
       if (!transactionTag) {
         throw new NotFoundException();
@@ -62,33 +70,63 @@ export class TransactionTagService {
     }
   }
 
-  async createTransactionTag(createTransactionTagRequest: CreateTransactionTagRequest): Promise<TransactionTagResponse> {
+  async createTransactionTag(
+    userId: number,
+    createTransactionTagRequest: CreateTransactionTagRequest,
+  ): Promise<SuccessMessageResponse> {
     try {
-      const createdTransactionTag = await this.prismaService.transactionTag.create({
-        data: createTransactionTagRequest
-      });
+      const isTagAlreadyExists =
+        await this.prismaService.transactionTag.findFirst({
+          where: { title: createTransactionTagRequest.title, userId },
+        });
 
-      return TransactionTagResponse.fromTransactionEntity(createdTransactionTag);
+      if (isTagAlreadyExists) {
+        throw new ConflictException(
+          `У вас уже есть тэг "${createTransactionTagRequest.title}"`,
+        );
+      }
+
+      const createdTransactionTag =
+        await this.prismaService.transactionTag.create({
+          data: createTransactionTagRequest,
+        });
+
+      return { message: `Тэг ${createdTransactionTag.title} создан` };
     } catch (err) {
       Logger.error(JSON.stringify(err));
+
+      if (err instanceof ConflictException) {
+        throw err;
+      }
+
       throw new InternalServerErrorException();
     }
   }
 
-  async updateTransactionTag(userId: number, transactionTagId: number, updateTransactionTagRequest: UpdateTransactionTagRequest): Promise<TransactionTagResponse> {
+  async updateTransactionTag(
+    userId: number,
+    transactionTagId: number,
+    updateTransactionTagRequest: UpdateTransactionTagRequest,
+  ): Promise<SuccessMessageResponse> {
     try {
-      const transactionTagToUpdate = await this.getTransactionTag(transactionTagId, userId);
+      const transactionTagToUpdate = await this.getTransactionTag(
+        transactionTagId,
+        userId,
+      );
 
       if (!transactionTagToUpdate) {
         throw new NotFoundException();
       }
 
-      const updatedTransactionTag = await this.prismaService.transactionTag.update({
-        where: { id: transactionTagId, userId },
-        data: updateTransactionTagRequest
-      });
+      const updatedTransactionTag =
+        await this.prismaService.transactionTag.update({
+          where: { id: transactionTagId, userId },
+          data: updateTransactionTagRequest,
+        });
 
-      return TransactionTagResponse.fromTransactionEntity(updatedTransactionTag);
+      return {
+        message: `Тэг "${transactionTagToUpdate.title}" редактирован, новое название - "${updatedTransactionTag.title}"`,
+      };
     } catch (err) {
       Logger.error(JSON.stringify(err));
 
@@ -103,19 +141,25 @@ export class TransactionTagService {
     }
   }
 
-  async deleteTransactionTag(transactionTagId: number, userId: number): Promise<SuccessMessageResponse> {
+  async deleteTransactionTag(
+    transactionTagId: number,
+    userId: number,
+  ): Promise<SuccessMessageResponse> {
     try {
-      const transactionTagToDelete = await this.getTransactionTag(transactionTagId, userId);
+      const transactionTagToDelete = await this.getTransactionTag(
+        transactionTagId,
+        userId,
+      );
 
       if (!transactionTagToDelete) {
         throw new NotFoundException();
       }
 
       await this.prismaService.transactionTag.delete({
-        where: { id: transactionTagId, userId }
+        where: { id: transactionTagId, userId },
       });
 
-      return { message: "Тег удален" };
+      return { message: `Тег "${transactionTagToDelete.title}" удален` };
     } catch (err) {
       Logger.error(JSON.stringify(err));
 

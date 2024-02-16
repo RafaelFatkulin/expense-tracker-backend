@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsOptional, MaxLength, MinLength, IsBoolean } from "class-validator";
+import {
+  IsNotEmpty,
+  IsOptional,
+  MaxLength,
+  MinLength,
+  IsBoolean,
+} from 'class-validator';
 
 export class LoginRequest {
   @IsNotEmpty()

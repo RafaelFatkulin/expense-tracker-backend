@@ -4,24 +4,27 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
-  NotFoundException
-} from "@nestjs/common";
-import { CreateWalletRequest, UpdateWalletRequest, WalletResponse } from "./models";
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  CreateWalletRequest,
+  UpdateWalletRequest,
+  WalletResponse,
+} from './models';
 
-import { PrismaService } from "src/common/services/prisma.service";
-import { WalletResponseWithBalance } from "./models";
-import { WalletWithTransactionsResponse } from "./models";
-import { SuccessMessageResponse } from "src/common/models";
+import { PrismaService } from 'src/common/services/prisma.service';
+import { WalletResponseWithBalance } from './models';
+import { WalletWithTransactionsResponse } from './models';
+import { SuccessMessageResponse } from 'src/common/models';
 
 @Injectable()
 export class WalletService {
-  constructor(private readonly prisma: PrismaService) {
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
   async getWallet(walletId: number): Promise<WalletResponse> {
     try {
       return WalletResponse.fromWalletEntity(
-        await this.prisma.wallet.findUnique({ where: { id: walletId } })
+        await this.prisma.wallet.findUnique({ where: { id: walletId } }),
       );
     } catch (err) {
       Logger.error(JSON.stringify(err));
@@ -30,11 +33,11 @@ export class WalletService {
   }
 
   async createWallet(
-    createWalletRequest: CreateWalletRequest
+    createWalletRequest: CreateWalletRequest,
   ): Promise<SuccessMessageResponse> {
     try {
       const createdWallet = await this.prisma.wallet.create({
-        data: createWalletRequest
+        data: createWalletRequest,
       });
 
       return { message: `Кошелек "${createdWallet.title}" создан` };
@@ -47,7 +50,7 @@ export class WalletService {
   async updateWallet(
     walletId: number,
     userId: number,
-    updateWalletRequest: UpdateWalletRequest
+    updateWalletRequest: UpdateWalletRequest,
   ): Promise<SuccessMessageResponse> {
     try {
       const walletToUpdate = await this.getOneUserWallet(userId, walletId);
@@ -62,10 +65,12 @@ export class WalletService {
 
       const updatedWallet = await this.prisma.wallet.update({
         where: { id: walletId },
-        data: updateWalletRequest
+        data: updateWalletRequest,
       });
 
-      return { message: `Кошелек "${walletToUpdate.title}" редактирован, теперь он называется "${updatedWallet.title}"` };
+      return {
+        message: `Кошелек "${walletToUpdate.title}" редактирован, теперь он называется "${updatedWallet.title}"`,
+      };
     } catch (err) {
       Logger.error(JSON.stringify(err));
 
@@ -82,7 +87,7 @@ export class WalletService {
 
   async deleteWallet(
     walletId: number,
-    userId: number
+    userId: number,
   ): Promise<SuccessMessageResponse> {
     try {
       const walletToDelete = await this.getOneUserWallet(userId, walletId);
@@ -96,7 +101,7 @@ export class WalletService {
       }
 
       await this.prisma.wallet.delete({
-        where: { id: walletId }
+        where: { id: walletId },
       });
 
       return { message: `Кошелек "${walletToDelete.title}" удален` };
@@ -142,7 +147,7 @@ export class WalletService {
 
   async getOneUserWallet(
     userId: number,
-    walletId: number
+    walletId: number,
   ): Promise<WalletWithTransactionsResponse> {
     try {
       const foundedWallet = await this.prisma
@@ -202,7 +207,7 @@ export class WalletService {
 
       if (!foundedWallet[0]) {
         const walletWithoutTransactions = await this.prisma.wallet.findUnique({
-          where: { id: walletId }
+          where: { id: walletId },
         });
 
         if (!walletWithoutTransactions) {

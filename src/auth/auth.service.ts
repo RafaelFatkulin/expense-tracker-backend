@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -71,7 +72,9 @@ export class AuthService {
           emailVerificationToken,
         );
 
-        return { message: 'Регистрация успешна' };
+        return {
+          message: `Вы успешно зарегистрировались, для входа в аккаунт вам нужно подтвердить свой почтовый адрес "${signupRequest.email}"`,
+        };
       }
     } catch (err) {
       Logger.error(JSON.stringify(err));
@@ -125,7 +128,9 @@ export class AuthService {
         select: null,
       });
 
-      return { message: 'Почта подтверждена' };
+      return {
+        message: 'Ваша почта подтверждена, теперь вы можете войти в аккаунт',
+      };
     } else {
       Logger.log(`Verify email called with invalid email token ${token}`);
       throw new NotFoundException();
@@ -312,6 +317,12 @@ export class AuthService {
         throw new UnauthorizedException('Введены неверные данные');
       }
 
+      if (!user.emailVerified) {
+        throw new ForbiddenException(
+          'Подтвердите почту в отправленном вам письме',
+        );
+      }
+
       const payload: JwtPayload = {
         id: user.id,
         email: user.email,
@@ -327,7 +338,11 @@ export class AuthService {
     } catch (err) {
       Logger.log(err);
 
-      if (err instanceof UnauthorizedException) {
+      if (
+        err instanceof UnauthorizedException ||
+        err instanceof ForbiddenException
+      ) {
+        console.log(err);
         throw err;
       }
 
