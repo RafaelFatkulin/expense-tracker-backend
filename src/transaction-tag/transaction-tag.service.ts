@@ -129,7 +129,7 @@ export class TransactionTagService {
       };
     } catch (err) {
       Logger.error(JSON.stringify(err));
-
+      Logger.error(userId);
       if (
         err instanceof NotFoundException ||
         err instanceof ForbiddenException

@@ -36,7 +36,10 @@ export class TransactionTagController {
     @Body() createRequest: CreateTransactionTagRequest,
     @User() user: AuthUser,
   ): Promise<SuccessMessageResponse> {
-    return await this.transactionTagService.createTransactionTag(user.id, createRequest);
+    return await this.transactionTagService.createTransactionTag(
+      user.id,
+      createRequest,
+    );
   }
 
   @ApiBearerAuth()

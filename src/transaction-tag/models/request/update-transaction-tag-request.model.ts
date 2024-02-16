@@ -18,8 +18,4 @@ export class UpdateTransactionTagRequest {
   @IsOptional()
   @IsHexColor()
   color: string;
-
-  @IsNotEmpty()
-  @IsNumber()
-  userId: number;
 }
