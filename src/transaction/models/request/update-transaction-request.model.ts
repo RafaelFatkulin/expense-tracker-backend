@@ -31,10 +31,5 @@ export class UpdateTransactionRequest {
   @IsOptional()
   @IsNotEmpty()
   @IsNumber()
-  walletId?: number;
-
-  @IsOptional()
-  @IsNotEmpty()
-  @IsNumber()
   transactionTagId?: number;
 }

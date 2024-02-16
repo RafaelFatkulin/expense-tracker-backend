@@ -5,8 +5,8 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+  UnauthorizedException, UnprocessableEntityException
+} from "@nestjs/common";
 import { PrismaService } from 'src/common/services/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { MailSenderService } from 'src/mail-sender/mail-sender.service';
@@ -314,7 +314,7 @@ export class AuthService {
         user === null ||
         !bcrypt.compareSync(loginRequest.password, user.passwordHash)
       ) {
-        throw new UnauthorizedException('Введены неверные данные');
+        throw new UnprocessableEntityException('Введены неверные данные');
       }
 
       if (!user.emailVerified) {
@@ -340,7 +340,8 @@ export class AuthService {
 
       if (
         err instanceof UnauthorizedException ||
-        err instanceof ForbiddenException
+        err instanceof ForbiddenException ||
+        err instanceof UnprocessableEntityException
       ) {
         console.log(err);
         throw err;

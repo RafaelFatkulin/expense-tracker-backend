@@ -90,7 +90,7 @@ export class TransactionService {
       }
 
       const updatedTransaction = await this.prisma.transaction.update({
-        where: { id: updateTransactionRequest.walletId },
+        where: { id: transactionToUpdate.walletId },
         data: updateTransactionRequest,
       });
 

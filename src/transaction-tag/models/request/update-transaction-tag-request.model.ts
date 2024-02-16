@@ -1,7 +1,6 @@
 import {
   IsHexColor,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   MaxLength,

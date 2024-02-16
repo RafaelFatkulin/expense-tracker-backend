@@ -152,48 +152,23 @@ export class WalletService {
     try {
       const foundedWallet = await this.prisma
         .$queryRaw<WalletWithTransactionsResponse>`
+           WITH last_transaction_date AS (
+            SELECT MAX("createdAt"::date) as last_date
+            FROM "transaction"
+            WHERE "walletId" = ${walletId}
+          )
           SELECT
             w.id as "id",
             w.title as "title",
             w."userId" as "userId",
             COALESCE(SUM(CASE WHEN t.type = 'INCOME' THEN t.amount ELSE 0 END), 0) -
             COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount ELSE 0 END), 0) AS balance,
-            CASE 
-              WHEN EXISTS (
-                SELECT 1 
-                FROM "transaction" t
-                WHERE t."walletId" = ${walletId} AND t.type = 'INCOME'
-              )
-              THEN (
+            COALESCE((
                 SELECT json_agg(json_build_object('id', t.id, 'type', t.type, 'title', t.title, 'amount', t.amount))
-                FROM (
-                  SELECT DISTINCT ON (t.id) t.id, t.type, t.title, t.amount
-                  FROM "transaction" t
-                  WHERE t."walletId" = ${walletId} AND t.type = 'INCOME'
-                  ORDER BY t.id DESC
-                  LIMIT 5
-                ) t
-              )
-              ELSE NULL -- Можно вернуть NULL или [] (пустой массив) в зависимости от предпочтений
-            END as "incomes",
-            CASE 
-              WHEN EXISTS (
-                SELECT 1 
                 FROM "transaction" t
-                WHERE t."walletId" = ${walletId} AND t.type = 'EXPENSE'
-              )
-              THEN (
-                SELECT json_agg(json_build_object('id', t.id, 'type', t.type, 'title', t.title, 'amount', t.amount))
-                FROM (
-                  SELECT DISTINCT ON (t.id) t.id, t.type, t.title, t.amount
-                  FROM "transaction" t
-                  WHERE t."walletId" = ${walletId} AND t.type = 'EXPENSE'
-                  ORDER BY t.id DESC
-                  LIMIT 5
-                ) t
-              )
-              ELSE NULL -- Можно вернуть NULL или [] (пустой массив) в зависимости от предпочтений
-            END as "expenses"
+                JOIN last_transaction_date ltd ON t."createdAt"::date = ltd.last_date
+                WHERE t."walletId" = ${walletId}
+            ), '[]'::json) as "transactions"
           FROM 
             "wallet" w
           LEFT JOIN 
@@ -203,7 +178,7 @@ export class WalletService {
           GROUP BY 
             w.id, w.title, w."userId"
           LIMIT 1;
-    `;
+        `;
 
       if (!foundedWallet[0]) {
         const walletWithoutTransactions = await this.prisma.wallet.findUnique({

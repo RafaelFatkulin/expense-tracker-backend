@@ -5,8 +5,7 @@ export class WalletWithTransactionsResponse {
   title: string;
   balance?: Prisma.Decimal;
   userId: number;
-  incomes?: Transaction[];
-  expenses?: Transaction[];
+  transactions?: Transaction[];
 
   static fromWalletEntity(
     entity: WalletWithTransactionsResponse,
@@ -17,8 +16,7 @@ export class WalletWithTransactionsResponse {
     response.title = entity.title;
     response.balance = entity.balance;
     response.userId = entity.userId;
-    response.incomes = entity.incomes;
-    response.expenses = entity.expenses;
+    response.transactions = entity.transactions;
 
     return response;
   }
