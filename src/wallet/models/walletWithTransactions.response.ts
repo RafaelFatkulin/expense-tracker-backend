@@ -1,11 +1,10 @@
-import type { Prisma, Transaction } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 
 export class WalletWithTransactionsResponse {
   id: number;
   title: string;
   balance?: Prisma.Decimal;
   userId: number;
-  transactions?: Transaction[];
 
   static fromWalletEntity(
     entity: WalletWithTransactionsResponse,
@@ -16,7 +15,6 @@ export class WalletWithTransactionsResponse {
     response.title = entity.title;
     response.balance = entity.balance;
     response.userId = entity.userId;
-    response.transactions = entity.transactions;
 
     return response;
   }

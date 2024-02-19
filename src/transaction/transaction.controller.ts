@@ -21,7 +21,7 @@ import {
   UpdateTransactionRequest,
 } from './models';
 import { SuccessMessageResponse } from 'src/common/models';
-import { TransactionTag, TransactionType } from "@prisma/client";
+import { TransactionType } from '@prisma/client';
 
 @ApiTags('transactions')
 @Controller('transactions')
@@ -34,7 +34,7 @@ export class TransactionController {
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() createRequest: CreateTransactionRequest,
-  ): Promise<TransactionResponse> {
+  ): Promise<SuccessMessageResponse> {
     return await this.transactionService.createTransaction(createRequest);
   }
 
@@ -44,7 +44,7 @@ export class TransactionController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateRequest: UpdateTransactionRequest,
-  ): Promise<TransactionResponse> {
+  ): Promise<SuccessMessageResponse> {
     return await this.transactionService.updateTransaction(id, updateRequest);
   }
 

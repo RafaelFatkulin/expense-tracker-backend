@@ -4,14 +4,12 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import { TransactionResponse, UpdateTransactionRequest } from './models';
-
-import { CreateTransactionRequest } from './models/request/create-transaction-request.model';
-import { PrismaService } from 'src/common/services/prisma.service';
-import { SuccessMessageResponse } from 'src/common/models';
-import { TransactionType } from '@prisma/client';
+  NotFoundException
+} from "@nestjs/common";
+import { CreateTransactionRequest, TransactionResponse, UpdateTransactionRequest } from "./models";
+import { PrismaService } from "src/common/services/prisma.service";
+import { SuccessMessageResponse } from "src/common/models";
+import { TransactionType } from "@prisma/client";
 
 @Injectable()
 export class TransactionService {
@@ -65,13 +63,13 @@ export class TransactionService {
 
   async createTransaction(
     createTransactionRequest: CreateTransactionRequest,
-  ): Promise<TransactionResponse> {
+  ): Promise<SuccessMessageResponse> {
     try {
       const createdTransaction = await this.prisma.transaction.create({
         data: createTransactionRequest,
       });
 
-      return TransactionResponse.fromTransactionEntity(createdTransaction);
+      return { message: `Транзакция "${createdTransaction.title}" создана` };
     } catch (err) {
       Logger.error(JSON.stringify(err));
       throw new InternalServerErrorException();
@@ -81,7 +79,7 @@ export class TransactionService {
   async updateTransaction(
     transactionId: number,
     updateTransactionRequest: UpdateTransactionRequest,
-  ): Promise<TransactionResponse> {
+  ): Promise<SuccessMessageResponse> {
     try {
       const transactionToUpdate = await this.getTransaction(transactionId);
 
@@ -94,7 +92,15 @@ export class TransactionService {
         data: updateTransactionRequest,
       });
 
-      return TransactionResponse.fromTransactionEntity(updatedTransaction);
+      if (transactionToUpdate.title !== updatedTransaction.title) {
+        return {
+          message: `Транзакция ${transactionToUpdate.title} редактирована`,
+        };
+      }
+
+      return {
+        message: `Транзакция ${transactionToUpdate.title} редактирована, новое название - ${updatedTransaction.title}`,
+      };
     } catch (err) {
       Logger.error(JSON.stringify(err));
 

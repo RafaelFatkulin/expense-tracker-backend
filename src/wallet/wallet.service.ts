@@ -14,8 +14,8 @@ import {
 
 import { PrismaService } from 'src/common/services/prisma.service';
 import { WalletResponseWithBalance } from './models';
-import { WalletWithTransactionsResponse } from './models';
 import { SuccessMessageResponse } from 'src/common/models';
+import { TransactionResponse } from '../transaction/models';
 
 @Injectable()
 export class WalletService {
@@ -148,51 +148,71 @@ export class WalletService {
   async getOneUserWallet(
     userId: number,
     walletId: number,
-  ): Promise<WalletWithTransactionsResponse> {
+  ): Promise<WalletResponseWithBalance> {
     try {
       const foundedWallet = await this.prisma
-        .$queryRaw<WalletWithTransactionsResponse>`
-           WITH last_transaction_date AS (
-            SELECT MAX("createdAt"::date) as last_date
-            FROM "transaction"
-            WHERE "walletId" = ${walletId}
-          )
-          SELECT
-            w.id as "id",
-            w.title as "title",
-            w."userId" as "userId",
-            COALESCE(SUM(CASE WHEN t.type = 'INCOME' THEN t.amount ELSE 0 END), 0) -
-            COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount ELSE 0 END), 0) AS balance,
-            COALESCE((
-                SELECT json_agg(json_build_object('id', t.id, 'type', t.type, 'title', t.title, 'amount', t.amount))
-                FROM "transaction" t
-                JOIN last_transaction_date ltd ON t."createdAt"::date = ltd.last_date
-                WHERE t."walletId" = ${walletId}
-            ), '[]'::json) as "transactions"
-          FROM 
-            "wallet" w
-          LEFT JOIN 
-            "transaction" t ON w.id = t."walletId"
-          WHERE 
-            w.id = ${walletId} AND w."userId" = ${userId}
-          GROUP BY 
-            w.id, w.title, w."userId"
-          LIMIT 1;
-        `;
-
-      if (!foundedWallet[0]) {
-        const walletWithoutTransactions = await this.prisma.wallet.findUnique({
-          where: { id: walletId },
-        });
-
-        if (!walletWithoutTransactions) {
-          throw new NotFoundException();
-        }
-
-        return walletWithoutTransactions;
-      }
+        .$queryRaw<WalletResponseWithBalance>`
+        SELECT
+          w.id as "id",
+          w.title as "title",
+          w."userId" as "userId",
+          COALESCE(SUM(CASE WHEN t.type = 'INCOME' THEN t.amount ELSE 0 END), 0) -
+          COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount ELSE 0 END), 0) AS balance
+        FROM 
+          "wallet" w
+        LEFT JOIN 
+          "transaction" t ON w.id = t."walletId"
+        WHERE 
+              w.id = ${walletId} AND w."userId" = ${userId}
+           GROUP BY 
+              w.id, w.title, w."userId" 
+        LIMIT 1;
+      `;
 
       return foundedWallet[0];
+    } catch (err) {
+      Logger.error(JSON.stringify(err));
+
+      if (err instanceof NotFoundException) {
+        throw err;
+      }
+
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async getLastDayTransactions(
+    walletId: number,
+  ): Promise<TransactionResponse[]> {
+    try {
+      const lastTransaction = await this.prisma.transaction.findFirst({
+        where: {
+          walletId,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      if (!lastTransaction) {
+        throw new NotFoundException('Последняя транзакция не найдена');
+      }
+
+      const lastTransactionDate = lastTransaction.createdAt;
+      const startOfDay = new Date(lastTransactionDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(lastTransactionDate);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      return await this.prisma.transaction.findMany({
+        where: {
+          walletId,
+          createdAt: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+        },
+      });
     } catch (err) {
       Logger.error(JSON.stringify(err));
 

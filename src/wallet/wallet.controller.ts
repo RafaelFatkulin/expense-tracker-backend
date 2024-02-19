@@ -24,6 +24,7 @@ import {
 import { User } from 'src/user/user.decorator';
 import { AuthUser } from 'src/auth/auth-user';
 import { SuccessMessageResponse } from 'src/common/models';
+import { TransactionResponse } from "../transaction/models";
 
 @ApiTags('wallets')
 @Controller('wallets')
@@ -76,7 +77,16 @@ export class WalletController {
   async getOneUserWallet(
     @Param('id', ParseIntPipe) id: number,
     @User() user: AuthUser,
-  ): Promise<WalletWithTransactionsResponse> {
+  ): Promise<WalletResponseWithBalance> {
     return await this.walletService.getOneUserWallet(user.id, id);
+  }
+
+  @ApiBearerAuth()
+  @Get(':id/last-transactions')
+  @HttpCode(HttpStatus.OK)
+  async getLastDayTransactions(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<TransactionResponse[]> {
+    return await this.walletService.getLastDayTransactions(id);
   }
 }
