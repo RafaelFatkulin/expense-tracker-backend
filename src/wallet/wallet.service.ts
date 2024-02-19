@@ -212,6 +212,12 @@ export class WalletService {
             lte: endOfDay,
           },
         },
+        include: {
+          transactionTag: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
       });
     } catch (err) {
       Logger.error(JSON.stringify(err));
