@@ -25,6 +25,7 @@ import { User } from 'src/user/user.decorator';
 import { AuthUser } from 'src/auth/auth-user';
 import { SuccessMessageResponse } from 'src/common/models';
 import { TransactionResponse } from "../transaction/models";
+import { SumOfWalletTransactionsByTypeResponse } from "./models/sumOfWalletTransactionsByType.response";
 
 @ApiTags('wallets')
 @Controller('wallets')
@@ -88,5 +89,14 @@ export class WalletController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<TransactionResponse[]> {
     return await this.walletService.getLastDayTransactions(id);
+  }
+
+  @ApiBearerAuth()
+  @Get(':id/transactions-sum')
+  @HttpCode(HttpStatus.OK)
+  async getWalletTransactionSum(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<SumOfWalletTransactionsByTypeResponse[]> {
+    return await this.walletService.getWalletTransactionSum(id);
   }
 }

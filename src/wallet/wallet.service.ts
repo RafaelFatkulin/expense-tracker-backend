@@ -16,6 +16,7 @@ import { PrismaService } from 'src/common/services/prisma.service';
 import { WalletResponseWithBalance } from './models';
 import { SuccessMessageResponse } from 'src/common/models';
 import { TransactionResponse } from '../transaction/models';
+import { SumOfWalletTransactionsByTypeResponse } from './models/sumOfWalletTransactionsByType.response';
 
 @Injectable()
 export class WalletService {
@@ -225,6 +226,38 @@ export class WalletService {
       if (err instanceof NotFoundException) {
         throw err;
       }
+
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async getWalletTransactionSum(
+    walletId: number,
+  ): Promise<SumOfWalletTransactionsByTypeResponse[]> {
+    try {
+      const queryResult = await this.prisma.$queryRaw<
+        SumOfWalletTransactionsByTypeResponse[]
+      >`
+        SELECT
+            SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) AS "expense",
+            SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) AS "income"
+        FROM transaction
+        WHERE transaction."walletId" = ${walletId};
+      `;
+
+      if (queryResult.length === 0) {
+        return [
+          { name: 'expense', value: 0 },
+          { name: 'income', value: 0 },
+        ];
+      }
+
+      return Object.keys(queryResult[0]).map((key) => ({
+        name: key,
+        value: queryResult[0][key],
+      }));
+    } catch (err) {
+      Logger.error(JSON.stringify(err));
 
       throw new InternalServerErrorException();
     }
