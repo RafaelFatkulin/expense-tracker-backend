@@ -4,12 +4,16 @@ import {
   Injectable,
   InternalServerErrorException,
   Logger,
-  NotFoundException
-} from "@nestjs/common";
-import { CreateTransactionRequest, TransactionResponse, UpdateTransactionRequest } from "./models";
-import { PrismaService } from "src/common/services/prisma.service";
-import { SuccessMessageResponse } from "src/common/models";
-import { TransactionType } from "@prisma/client";
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  CreateTransactionRequest,
+  TransactionResponse,
+  UpdateTransactionRequest,
+} from './models';
+import { PrismaService } from 'src/common/services/prisma.service';
+import { SuccessMessageResponse } from 'src/common/models';
+import { Prisma, TransactionType } from "@prisma/client";
 
 @Injectable()
 export class TransactionService {
@@ -35,10 +39,18 @@ export class TransactionService {
     transactionTagId?: number,
   ): Promise<TransactionResponse[]> {
     try {
+      const whereClause: Prisma.TransactionWhereInput = { walletId };
+      if (transactionType) {
+        whereClause.type = transactionType;
+      }
+      if (transactionTagId) {
+        whereClause.transactionTagId = transactionTagId;
+      }
+
       const transactionsOfWallet = await this.prisma.transaction.findMany({
-        where: { type: transactionType, walletId, transactionTagId },
+        where: whereClause,
         orderBy: {
-          id: 'asc',
+          id: 'desc',
         },
         include: {
           transactionTag: true,

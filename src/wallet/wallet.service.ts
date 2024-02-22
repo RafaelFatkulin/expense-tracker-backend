@@ -17,6 +17,7 @@ import { WalletResponseWithBalance } from './models';
 import { SuccessMessageResponse } from 'src/common/models';
 import { TransactionResponse } from '../transaction/models';
 import { SumOfWalletTransactionsByTypeResponse } from './models/sumOfWalletTransactionsByType.response';
+import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class WalletService {
@@ -235,6 +236,7 @@ export class WalletService {
     walletId: number,
   ): Promise<SumOfWalletTransactionsByTypeResponse[]> {
     try {
+      const lastMonthStartDate = new Date().setMonth(new Date().getMonth() - 1);
       const queryResult = await this.prisma.$queryRaw<
         SumOfWalletTransactionsByTypeResponse[]
       >`
@@ -242,7 +244,8 @@ export class WalletService {
             SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) AS "expense",
             SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) AS "income"
         FROM transaction
-        WHERE transaction."walletId" = ${walletId};
+        WHERE transaction."walletId" = ${walletId}
+            AND transaction."createdAt" >= TO_TIMESTAMP(${lastMonthStartDate} / 1000);
       `;
 
       if (queryResult.length === 0) {
