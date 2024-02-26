@@ -94,13 +94,13 @@ export class TransactionService {
   ): Promise<SuccessMessageResponse> {
     try {
       const transactionToUpdate = await this.getTransaction(transactionId);
-
+      console.log(transactionToUpdate);
       if (!transactionToUpdate) {
         throw new NotFoundException();
       }
 
       const updatedTransaction = await this.prisma.transaction.update({
-        where: { id: transactionToUpdate.walletId },
+        where: { id: transactionToUpdate.id },
         data: updateTransactionRequest,
       });
 

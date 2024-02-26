@@ -17,7 +17,6 @@ import { WalletResponseWithBalance } from './models';
 import { SuccessMessageResponse } from 'src/common/models';
 import { TransactionResponse } from '../transaction/models';
 import { SumOfWalletTransactionsByTypeResponse } from './models/sumOfWalletTransactionsByType.response';
-import { Prisma } from "@prisma/client";
 
 @Injectable()
 export class WalletService {
@@ -183,7 +182,7 @@ export class WalletService {
     }
   }
 
-  async getLastDayTransactions(
+  async getLastTransactions(
     walletId: number,
   ): Promise<TransactionResponse[]> {
     try {
@@ -200,19 +199,9 @@ export class WalletService {
         throw new NotFoundException('Последняя транзакция не найдена');
       }
 
-      const lastTransactionDate = lastTransaction.createdAt;
-      const startOfDay = new Date(lastTransactionDate);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(lastTransactionDate);
-      endOfDay.setHours(23, 59, 59, 999);
-
       return await this.prisma.transaction.findMany({
         where: {
           walletId,
-          createdAt: {
-            gte: startOfDay,
-            lte: endOfDay,
-          },
         },
         include: {
           transactionTag: true,
@@ -220,6 +209,7 @@ export class WalletService {
         orderBy: {
           createdAt: 'desc',
         },
+        take: 6,
       });
     } catch (err) {
       Logger.error(JSON.stringify(err));

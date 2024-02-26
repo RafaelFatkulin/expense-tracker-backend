@@ -88,7 +88,7 @@ export class WalletController {
   async getLastDayTransactions(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<TransactionResponse[]> {
-    return await this.walletService.getLastDayTransactions(id);
+    return await this.walletService.getLastTransactions(id);
   }
 
   @ApiBearerAuth()
