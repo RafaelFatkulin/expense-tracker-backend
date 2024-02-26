@@ -106,12 +106,12 @@ export class TransactionService {
 
       if (transactionToUpdate.title !== updatedTransaction.title) {
         return {
-          message: `Транзакция ${transactionToUpdate.title} редактирована`,
+          message: `Транзакция "${transactionToUpdate.title}" редактирована`,
         };
       }
 
       return {
-        message: `Транзакция ${transactionToUpdate.title} редактирована, новое название - ${updatedTransaction.title}`,
+        message: `Транзакция "${transactionToUpdate.title}" редактирована, новое название - "${updatedTransaction.title}"`,
       };
     } catch (err) {
       Logger.error(JSON.stringify(err));
