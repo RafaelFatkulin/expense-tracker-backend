@@ -28,6 +28,7 @@ import { SuccessMessageResponse } from 'src/common/models';
 import { TransactionResponse } from '../transaction/models';
 import { SumOfWalletTransactionsByTypeResponse } from './models/sumOfWalletTransactionsByType.response';
 import { CalendarDataResponse } from "./models/calendarData.response";
+import { TagsInfoResponse } from './models/tagsInfo.response';
 
 @ApiTags('wallets')
 @Controller('wallets')
@@ -125,5 +126,15 @@ export class WalletController {
       startDate,
       endDate,
     );
+  }
+
+  @ApiBearerAuth()
+  @Get(':id/tags')
+  @HttpCode(HttpStatus.OK)
+  async getWalletTagsData(
+    @Param('id', ParseIntPipe) id: number,
+    @User() user: AuthUser,
+  ): Promise<TagsInfoResponse[]> {
+    return await this.walletService.getWalletTagsData(id, user.id);
   }
 }

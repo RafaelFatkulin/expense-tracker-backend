@@ -18,6 +18,7 @@ import { SuccessMessageResponse } from 'src/common/models';
 import { TransactionResponse } from '../transaction/models';
 import { SumOfWalletTransactionsByTypeResponse } from './models/sumOfWalletTransactionsByType.response';
 import { CalendarDataResponse } from './models/calendarData.response';
+import { TagsInfoResponse } from './models/tagsInfo.response';
 
 @Injectable()
 export class WalletService {
@@ -308,13 +309,50 @@ export class WalletService {
         }
       });
 
-      // Преобразуем Map в массив объектов с датой и суммой
       const result = [];
       dateMap.forEach((value, key) => {
         result.push({ day: key, value });
       });
 
       return result;
+    } catch (err) {
+      Logger.error(JSON.stringify(err));
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async getWalletTagsData(
+    walletId: number,
+    userId: number,
+  ): Promise<TagsInfoResponse[]> {
+    try {
+      const tags = await this.prisma.transactionTag.findMany({
+        where: {
+          userId,
+        },
+        include: {
+          transactions: true,
+        },
+      });
+
+      const tagsInfo: TagsInfoResponse[] = [];
+
+      for (const tag of tags) {
+        const transactions = tag.transactions.filter(
+          (transaction) => transaction.walletId === walletId,
+        );
+        const totalAmount = transactions.reduce(
+          (acc, curr) => acc + parseFloat(curr.amount.toString()),
+          0,
+        );
+        tagsInfo.push({
+          tag: tag.title,
+          amount: totalAmount,
+          color: tag.color,
+        });
+      }
+
+      return tagsInfo;
     } catch (err) {
       Logger.error(JSON.stringify(err));
       throw new InternalServerErrorException();
