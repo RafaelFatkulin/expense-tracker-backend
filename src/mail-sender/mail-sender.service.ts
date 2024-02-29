@@ -95,7 +95,7 @@ export class MailSenderService {
 
     const mailOptions = {
       from: `"${config.mail.senderCredentials.name}" <${config.mail.senderCredentials.email}>`,
-      to: email, // list of receivers (separated by ,)
+      to: email,
       subject: `Change Your ${config.project.name} Account's Email`,
       html: mail,
     };

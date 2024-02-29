@@ -10,9 +10,10 @@ import {
   Patch,
   ParseIntPipe,
   Get,
+  Query,
 } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from "@nestjs/swagger";
 import { AuthGuard } from '@nestjs/passport';
 import {
   CreateWalletRequest,
@@ -24,8 +25,9 @@ import {
 import { User } from 'src/user/user.decorator';
 import { AuthUser } from 'src/auth/auth-user';
 import { SuccessMessageResponse } from 'src/common/models';
-import { TransactionResponse } from "../transaction/models";
-import { SumOfWalletTransactionsByTypeResponse } from "./models/sumOfWalletTransactionsByType.response";
+import { TransactionResponse } from '../transaction/models';
+import { SumOfWalletTransactionsByTypeResponse } from './models/sumOfWalletTransactionsByType.response';
+import { CalendarDataResponse } from "./models/calendarData.response";
 
 @ApiTags('wallets')
 @Controller('wallets')
@@ -98,5 +100,30 @@ export class WalletController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<SumOfWalletTransactionsByTypeResponse[]> {
     return await this.walletService.getWalletTransactionSum(id);
+  }
+
+  @ApiBearerAuth()
+  @Get(':id/calendar')
+  @HttpCode(HttpStatus.OK)
+  @ApiQuery({
+    name: 'startDate',
+    type: String,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'endDate',
+    type: String,
+    required: false,
+  })
+  async getWalletCalendarData(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ): Promise<CalendarDataResponse[]> {
+    return await this.walletService.getWalletCalendarData(
+      id,
+      startDate,
+      endDate,
+    );
   }
 }
